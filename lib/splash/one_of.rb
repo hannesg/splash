@@ -1,2 +1,0 @@
-class Splash::OneOf
-end

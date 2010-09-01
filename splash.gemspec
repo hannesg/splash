@@ -2,7 +2,7 @@ Gem::Specification.new do |s|
   s.name = %q{splash}
   s.version = "0.0.1"
   s.date = %q{2010-09-01}
-  s.authors = ["HannsG"]
+  s.authors = ["HannesG"]
   s.email = %q{hannes.georg@googlemail.com}
   s.summary = %q{Be Splashed!}
   s.homepage = %q{http://github.com/hannesg/splash}

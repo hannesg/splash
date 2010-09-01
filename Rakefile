@@ -8,11 +8,11 @@ require 'spec/ruby'
 
 task :default => [:spec] 
 
-#spec = Gem::Specification.load "splash.gemspec"
-#Rake::GemPackageTask.new(spec) do |pkg|
-#  pkg.need_zip = true
-#  pkg.need_tar = true
-#end
+spec = Gem::Specification.load "splash.gemspec"
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar = true
+end
 
 Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_files = FileList['spec/**/*_spec.rb']

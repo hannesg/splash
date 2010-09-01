@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{splash}
-  s.version = "0.0.1"
+  s.version = "0.0.1.alpha"
   s.date = %q{2010-09-01}
   s.authors = ["HannesG"]
   s.email = %q{hannes.georg@googlemail.com}

@@ -1,6 +1,5 @@
 require "rubygems"
-gem "mongo"
-require "mongo"
+require "bundler/setup"
 
 require File.join(File.dirname(__FILE__),"../../Humanized/lib/humanized")
 

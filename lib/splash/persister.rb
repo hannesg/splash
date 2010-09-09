@@ -1,6 +1,6 @@
 class Splash::Persister
   
-  RAW_TYPES=[String,NilClass,Numeric,FalseClass,TrueClass,BSON::ObjectID,Time]
+  RAW_TYPES=[String,NilClass,Numeric,FalseClass,TrueClass,BSON::ObjectId,Time]
   
   attr_reader :persisted_class
   

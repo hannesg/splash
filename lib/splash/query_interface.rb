@@ -44,7 +44,15 @@ CODE
       end
       
       def query_with_id(*args)
-        ids=args.flatten.map &:to_bson
+        ids=args.flatten.map do |id|
+          if id.kind_of? BSON::ObjectId
+            id
+          elsif id.kind_of? Hash and id['$oid']
+            BSON::ObjectId(id['$oid'])
+          else
+            BSON::ObjectId(id)
+          end
+        end
         if ids.size == 1
           return {:selector=>{"_id"=>ids.first}}
         else

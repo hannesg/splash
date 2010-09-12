@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   
   s.require_paths = ["lib"]
   
-  s.files = Dir.glob("{lib,spec}/**/**/*") + ["Rakefile"]
+  s.files = Dir.glob("{lib,spec}/**/**/*") + ["Rakefile", "Gemfile","splash.gemspec"]
   s.add_dependency "mongo", ">= 1.0"
   
   s.add_development_dependency 'rspec', ">= 1.3"

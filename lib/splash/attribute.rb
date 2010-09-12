@@ -1,6 +1,5 @@
 class Splash::Attribute
   
-  include ::Humanized
   include Splash::HasConstraint
   
   attr_accessor :persister, :type, :default

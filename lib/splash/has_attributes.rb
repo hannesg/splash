@@ -123,22 +123,30 @@ def #{name.to_s}=(value) return attributes[#{name.to_s.inspect}] = value end
 CODE
       end
       
-      def def_attribute(name,*args,&block)
+      def attribute(name,*args,&block)
         name = name.to_s
+        each_attributes do |attr|
+          if attr.key? name
+            if args.size > 0 || block
+              warn "trying to add the existing attribute #{name} of #{self}"
+              break
+            end
+            return attr[name]
+          end
+        end
         attr=attributes[name]=Splash::Attribute.new(*args, &block)
         attribute_accessor(name)
         return attr
       end
       
-      def attribute(name,create = true)
+      alias def_attribute attribute
+      
+      def attribute?(name)
         name = name.to_s
         each_attributes do |attr|
-          return attr[name] if attr.key? name
+          return true if attr.key? name
         end
-        if create
-          return def_attribute(name)
-        end
-        return nil
+        return false
       end
       
     end

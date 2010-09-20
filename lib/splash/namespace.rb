@@ -1,6 +1,6 @@
 require "logger"
 module Splash
-  class NameSpace
+  class Namespace
     
     URI_MATCHER = /^mongodb:\/\/([^\/:@]+)(:\d+|)\/(.*)/
     

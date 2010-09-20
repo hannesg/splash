@@ -121,7 +121,7 @@ module Splash
       end
       
       def namespace
-        @namespace ||= Splash::NameSpace.default
+        @namespace ||= Splash::Namespace.default
       end
       
       def collection

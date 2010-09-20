@@ -71,7 +71,7 @@ DEF
   end
   
   def autoload_all(base)
-    Dir[File.join(base,'**/*.rb')].each do |file|
+    Dir[File.join(base,'*.rb')].each do |file|
       path = file[base.size..-4].split('/')
       path.shift if path.first == ''
       path.map! do |part|

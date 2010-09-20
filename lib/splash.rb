@@ -8,9 +8,6 @@ end
 
 module Splash
   
-  DIR = File.dirname(__FILE__)
-  
   autoload_all File.join(File.dirname(__FILE__),'splash')
   
 end
-

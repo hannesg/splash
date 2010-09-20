@@ -14,5 +14,3 @@ culture.converter = Humanized::Converter.new({})
 Humanized::Culture.native=culture
 Humanized::Culture.current=culture
 =end
-
-require File.join(File.dirname(__FILE__),"../lib/splash")

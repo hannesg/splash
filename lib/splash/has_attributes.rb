@@ -2,21 +2,12 @@ module Splash
   module HasAttributes
     
     class Attributes < Hash
+      
+      alias_method :write, :[]=
+      
       def load(raw)
         raw.each do |key,value|
-          key=key.to_s
-          
-          
-          if value.kind_of? type(key).persisted_class
-            self[key]=value
-          elsif Splash::Persister.raw? value
-            @raw[key]=value
-          else
-            
-            puts value.class
-            puts type(key).persisted_class
-            raise "Don't know what to do with #{key}= #{value.inspect}"
-          end
+          self[key]=value
         end
       end
       
@@ -32,7 +23,19 @@ module Splash
         else
           value = t.default
         end
-        return self[key]=value
+        self.write(key,value)
+        return value
+      end
+      
+      def []=(key,value)
+        key=key.to_s
+        if value.kind_of? type(key).persisted_class
+          self.write(key,value)
+        elsif Splash::Persister.raw? value
+          @raw[key]=value
+        else
+          raise "Don't know what to do with #{key}= #{value.inspect}"
+        end
       end
       
       def initialize(klass)
@@ -125,13 +128,13 @@ CODE
       
       def attribute(name,*args,&block)
         name = name.to_s
-        each_attributes do |attr|
-          if attr.key? name
+        each_attributes do |attrs|
+          if attrs.key? name
             if args.size > 0 || block
               warn "trying to add the existing attribute #{name} of #{self}"
               break
             end
-            return attr[name]
+            return attrs[name]
           end
         end
         attr=attributes[name]=Splash::Attribute.new(*args, &block)

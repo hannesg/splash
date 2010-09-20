@@ -1,7 +1,7 @@
 module Splash
   class Scope
     
-    autoload :Options,Splash::DIR+"/splash/scope/options"
+    autoload_all File.join(File.dirname(__FILE__),'scope')
     
     include Splash::ActsAsScope
 

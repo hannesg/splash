@@ -2,10 +2,7 @@ module Splash::Constraint
   
   attr_reader :description
   
-  autoload :Any, File.join( File.dirname(__FILE__), 'constraint/any' )
-  autoload :All, File.join( File.dirname(__FILE__), 'constraint/all' )
-  autoload :NotNil, File.join( File.dirname(__FILE__), 'constraint/not_nil' )
-  autoload :In, File.join( File.dirname(__FILE__), 'constraint/in' )
+  autoload_all File.join(File.dirname(__FILE__),'constraint')
   
   class Simple
     

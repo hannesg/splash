@@ -69,5 +69,18 @@ end
 
 DEF
   end
-
+  
+  def autoload_all(base)
+    Dir[File.join(base,'**/*.rb')].each do |file|
+      path = file[base.size..-4].split('/')
+      path.shift if path.first == ''
+      path.map! do |part|
+        part.gsub(/(^|_)([a-z])/){
+          $2.upcase
+        }
+      end
+      autoload path.join, file
+    end
+  end
+  
 end

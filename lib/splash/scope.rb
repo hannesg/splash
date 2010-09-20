@@ -1,4 +1,3 @@
-require "delegate"
 module Splash
   class Scope
     

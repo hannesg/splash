@@ -1,13 +1,32 @@
 require "logger"
+require "delegate"
 module Splash
   class Namespace
     
-    URI_MATCHER = /^mongodb:\/\/([^\/:@]+)(:\d+|)\/(.*)/
+    URI_MATCHER = /^mongodb:\/\/([^\/:@]+)(:\d+|)\/(.*)/.freeze
     
-    LOGGER = ::Logger.new(STDOUT)
+    #LOGGER = ::Logger.new(STDOUT)
     #LOGGER.level = Logger::WARN
     
     attr_reader :db
+    
+    class LoggerDelegator < Delegator
+      
+      def initialize
+        super(Splash::Namespace.logger)
+      end
+      
+      def __getobj__
+        Splash::Namespace.logger
+      end
+      
+    end
+    
+    class << self
+      attr_accessor :logger
+    end
+    
+    self.logger = ::Logger.new(STDOUT)
     
     def self.default
       @default ||= self.new
@@ -20,9 +39,9 @@ module Splash
     def initialize(uri='mongodb://localhost/splash')
       match = URI_MATCHER.match(uri)
       if match.nil?
-        @db = Mongo::Connection.from_uri(uri,:logger=>LOGGER)
+        @db = Mongo::Connection.from_uri(uri,:logger=>LoggerDelegator.new)
       else
-        @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LOGGER).db(match[3])
+        @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LoggerDelegator.new).db(match[3])
       end
     end
     

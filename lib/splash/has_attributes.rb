@@ -33,6 +33,7 @@ module Splash
           self.write(key,value)
         elsif Splash::Persister.raw? value
           @raw[key]=value
+          self.delete(key)
         else
           raise "Don't know what to do with #{key}= #{value.inspect}"
         end

@@ -40,4 +40,32 @@ describe Splash::HasAttributes do
     
   end
   
+  it "should support nils" do
+    
+    class TestUser
+      
+      include Splash::Document
+      
+    end
+    
+    class TestSession
+      
+      include Splash::HasAttributes
+      
+      
+      attribute "user", TestUser
+      
+    end
+    
+    s = TestSession.new
+    
+    s.user = TestUser.new
+    
+    s.user = nil
+    
+    s.user.should be_nil
+    
+    
+  end
+  
 end

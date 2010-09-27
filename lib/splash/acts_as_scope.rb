@@ -92,11 +92,7 @@ module Splash
     
     def <<(object)
     end
-  
-    def scoped_methods(*modules,&block)
-      
-    end
-    
+
     protected
       def scope_cursor()
         @scope_cursor ||= find!(scope_options.selector,scope_options.options)

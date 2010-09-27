@@ -27,6 +27,7 @@ module Splash
     end
     
     self.logger = ::Logger.new(STDOUT)
+    self.logger.level = Logger::WARN
     
     def self.default
       @default ||= self.new

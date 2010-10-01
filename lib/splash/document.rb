@@ -18,6 +18,9 @@ module Splash::Document
           Splash::Document.included(base)
           super(base)
         end
+        
+        extend_scoped! Splash::ActsAsScope::ArraylikeAccess
+        
       end
     end
     

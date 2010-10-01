@@ -1,6 +1,6 @@
 class Splash::Scope::Options
   
-  OPTION_KEYS=[:fields,:limit,:sort]
+  OPTION_KEYS=[:fields,:limit,:sort, :skip]
   def self.cast(hsh)
     if hsh.kind_of? self
       return hsh
@@ -9,7 +9,7 @@ class Splash::Scope::Options
   end
   
   def initialize(hsh=nil)
-    @options={:selector=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>0,:sort=>[],:writeback=>nil}
+    @options={:selector=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil}
     @options.merge! hsh if hsh
     @options.freeze
   end
@@ -25,7 +25,8 @@ class Splash::Scope::Options
       :extend_scoped => (a[:extend_scoped] + (b[:extend_scoped] || [])),
       :limit => (b[:limit] || a[:limit]),
       :sort => (a[:sort] + (b[:sort] || [])),
-      :writeback => Splash::Writeback.merge(a[:writeback],b[:writeback])
+      :writeback => Splash::Writeback.merge(a[:writeback],b[:writeback]),
+      :skip => (b[:skip] || a[:skip])
     }
   end
   

@@ -1,5 +1,33 @@
 module Splash
   module ActsAsScope
+    
+    module ArraylikeAccess
+      def [](*args)
+        if args.size == 1
+          # range
+          if args.first.kind_of? Range
+            range = args.first
+            offset = range.first.to_int
+            last = range.last.to_int
+            if last == -1 and !range.exclude_end?
+              return query( :skip => offset )
+            end
+            if last < -1 
+              raise "ranges with negative ends are not supported ( except -1 for no limit )"
+            end
+            limit = ( last - offset ) - ( range.exclude_end? ? 1 : 0 )
+            return query( :limit => limit, :skip => offset )
+          end
+        elsif args.size == 2
+          offset = args[0].to_int
+          limit = args[1].to_int
+          return query( :limit => limit, :skip => offset )
+        end
+        raise "bag arguments #{args.inspect}, expected a range or a limit and an offset"
+      end
+      
+    end
+    
     include QueryInterface
     
     
@@ -65,22 +93,6 @@ module Splash
     def inspect
       scope_options.inspect
     end
-
-=begin
-    def finish!
-      self.scope_cursor
-      self
-    end
-    
-    def finished?
-      !@scope_cursor.nil?
-    end
-    
-    def reset!
-      self.unset_scope_cursor
-      self
-    end
-=end
     
     def count
       self.clone.scope_cursor.count

@@ -112,4 +112,41 @@ describe Splash::ActsAsScope do
     
   end
   
+  describe "arraylike access" do
+    
+    it "should support ranges" do
+      class Foo
+        include Splash::Document
+        
+        attribute "i"
+        
+      end
+      i = 1
+      20.times do
+        f = Foo.new("i"=>i)
+        f.store!
+        i+=1
+      end
+      
+      Foo[5..15].to_a.should have(10).items
+      Foo[5..-1].to_a.should have(15).items
+      Foo[5...15].to_a.should have(9).items
+    end
+    
+    it "should support skip with offset" do
+      class Foo
+        include Splash::Document
+      end
+      i = 1
+      20.times do
+        f = Foo.new("i"=>i)
+        f.store!
+        i+=1
+      end
+      
+      Foo[5,10].to_a.should have(10).items
+      
+    end
+  end
+  
 end

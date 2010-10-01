@@ -32,18 +32,21 @@ module BSON
       if object.kind_of? Integer
         if INT32.include?(object)
           # ouch, 64 bit ints!
-          return [16]
+          return [16].to_set
         else
           # ouch, 64 bit ints!
-          return [18]
+          return [18].to_set
         end
       end
+      found_class = Object
+      found_type = nil
       @class_to_type.each do |other_class,value|
-        if object.kind_of? other_class
-          return value
+        if object.kind_of? other_class and !(other_class > found_class)
+          found_class = other_class
+          found_type = value
         end
       end
-      return nil
+      return found_type
     end
     
     def self.reset!
@@ -63,6 +66,8 @@ module BSON
     Hash, 3,
     
     Array, 4,
+    
+    BSON::Binary, 5,
     
     # Undefined (deprecated)
     # NilClass, 6,

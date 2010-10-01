@@ -31,7 +31,24 @@ describe Splash::Matcher do
       
       docs = []
       
-      values = [:symbol,'str',5,-10,1099511627776,-1099511627776,/regexp/,[['array']],true,false,nil]
+      values = [
+        :symbol,
+        'str',
+        5,
+        -10,
+        1099511627776,
+        -1099511627776,
+        0.2342,
+        124.124,
+        /regexp/,
+        [['array']],
+        true,
+        false,
+        nil,
+        BSON::Code.new("foo == bar"),
+        BSON::Code.new("bar == baz",{'baz'=>1337}),
+        BSON::Binary.new([1,3,3,7])
+      ]
       
       values.each do |key|
         # single

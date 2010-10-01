@@ -117,9 +117,17 @@ module Splash
       @scope_options.selector.matches?(object)
     end
 
+    def explain
+      self.scope_root.collection.find(*find_options).explain()
+    end
+
+    def update(*args)
+      
+    end
+
     protected
       def scope_cursor()
-        @scope_cursor ||= find!(scope_options.selector,scope_options.options)
+        @scope_cursor ||= find!
       end
       
       def unset_scope_cursor()
@@ -130,9 +138,15 @@ module Splash
         @scope_options = scope_options.merge(options)
       end
     
-      def find!(selector,options)
-        selector["Type"]=self.scope_root.to_s
-        self.scope_root.collection.find(selector,options)
+      def find!
+        self.scope_root.collection.find(*find_options)
       end
+      
+      def find_options
+        selector,options = scope_options.selector,scope_options.options
+        selector["Type"]=self.scope_root.to_s
+        return [selector,options]
+      end
+      
   end
 end

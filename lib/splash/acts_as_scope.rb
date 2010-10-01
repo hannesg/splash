@@ -91,6 +91,18 @@ module Splash
     end
     
     def <<(object)
+      @scope_options.writeback(object)
+      if scope_root?
+        super(object)
+      else
+        scope_root.<<(object)
+        warn "object #{object} was writen to scope #{self} but won't be findable" unless complies_with?(object)
+        return object
+      end
+    end
+    
+    def complies_with?(object)
+      @scope_options.selector.matches?(object)
     end
 
     protected

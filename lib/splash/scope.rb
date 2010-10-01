@@ -23,6 +23,19 @@ module Splash
       super
     end
     
+    def new(*args,&block)
+      obj = scope_root.new(*args,&block)
+      @scope_options.writeback(obj)
+      return obj
+    end
+    
+    def create(*args,&block)
+      obj = scope_root.new(*args,&block)
+      @scope_options.writeback(obj)
+      obj.store!
+      return obj
+    end
+    
     private
       def load_scope_extensions!
         unless @scope_extesions_loaded

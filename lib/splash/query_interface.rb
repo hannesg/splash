@@ -1,7 +1,7 @@
 module Splash
   module QueryInterface
     
-    %w(preload nopreload limit conditions fieldmode with_id extend_scoped sort).each do |fct|
+    %w(preload nopreload limit conditions fieldmode with_id extend_scoped sort writeback where).each do |fct|
       class_eval <<-CODE, __FILE__,__LINE__
 def #{fct}(*args,&block)
   query(query_#{fct}(*args,&block))
@@ -59,6 +59,7 @@ CODE
           return {:selector=>{"_id"=>{"$in"=>ids}}}
         end
       end
+      
       def query_fieldmode(type)
         return {:fieldmode=>type}
       end
@@ -87,6 +88,18 @@ CODE
         end
         
         return {:extend_scoped => modules}
+      end
+      
+      def query_where(conditions)
+        return (query_conditions(conditions) + query_writeback(conditions))
+      end
+      
+      def query_writeback(args=nil,&block)
+        if args
+          return {:writeback=>Splash::Writeback.cast(args)}
+        elsif block_given?
+          return {:writeback=>Splash::Writeback.cast(block)}
+        end
       end
   end
 end

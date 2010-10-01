@@ -99,7 +99,7 @@ module Splash
     end
     
     def inspect
-      "#{self.class.to_s}{#{attributes.inspect}}"
+      "#{self.class.to_s}{#{attributes.raw.inspect}}"
     end
     
     def to_saveable
@@ -116,6 +116,10 @@ module Splash
         return attributes.key?(meth.to_s) 
       end
       super
+    end
+    
+    def initialize(attr={})
+      attributes.load(attr)
     end
     
     module ClassMethods

@@ -19,6 +19,45 @@ describe Splash::Matcher do
       
     end
     
+    it "should support the $type opperator" do
+      
+      class IndecisiveKey
+        
+        include Splash::Document
+        
+        attribute 'key'
+        
+      end
+      
+      docs = []
+      
+      values = [:symbol,'str',5,-10,1099511627776,-1099511627776,/regexp/,[['array']],true,false,nil]
+      
+      values.each do |key|
+        # single
+        docs << IndecisiveKey.new('key'=>key).store!
+        # and combined
+        values.each do |key2|
+          docs << IndecisiveKey.new('key'=>[key,key2]).store!
+        end
+      end
+      
+      values.each do |value|
+        
+        query = Splash::Matcher.cast('key'=>{'$type'=>BSON.type(value)})
+        
+        db_result = IndecisiveKey.conditions(query).to_a
+        
+        matcher_result = docs.find_all do |other_doc|
+          query.matches?(other_doc)
+        end
+        
+        (db_result.map(&:_id) - matcher_result.map(&:_id)).should have(0).items
+        (matcher_result.map(&:_id) - db_result.map(&:_id)).should have(0).items
+        
+      end
+      
+    end
     
   end
   

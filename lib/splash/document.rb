@@ -10,8 +10,6 @@ module Splash::Document
         mod.included(base)
       end
       
-      dd = self
-      
       base.instance_eval do
         include Splash::ActsAsCollection.of(base)
         extend Splash::ActsAsScopeRoot

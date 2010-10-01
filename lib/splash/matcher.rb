@@ -2,35 +2,44 @@ module Splash
   
   class Matcher < Hash
     
-    Atoms = Hash.new do |hash,key|
+    ATOMS = Hash.new do |hash,key|
       hash[key] = lambda{|value,matcher| false}
     end
-    Atoms['$eq'] = lambda{|value,matcher| value == matcher }
-    Atoms['$neq'] = lambda{|value,matcher| value != matcher }
-    Atoms['$in'] = lambda{|value,matcher| matcher.contains? value }
-    Atoms['$nin'] = lambda{|value,matcher| !(matcher.contains? value) }
-    Atoms['$lt'] = lambda{|value,matcher| matcher > value }
-    Atoms['$leq'] = lambda{|value,matcher| matcher >= value }
-    Atoms['$gt'] = lambda{|value,matcher| matcher < value }
-    Atoms['$geq'] = lambda{|value,matcher| matcher <= value }
-    Atoms['$elemMatch'] = lambda{|value,matcher| Matcher.cast(matcher).matches_any?(value) }
-    Atoms['$not'] = lambda{|value,matcher|
+    ATOMS['$neq'] = lambda{|value,matcher| value != matcher }
+    ATOMS['$in'] = lambda{|value,matcher| matcher.contains? value }
+    ATOMS['$nin'] = lambda{|value,matcher| !(matcher.contains? value) }
+    ATOMS['$lt'] = lambda{|value,matcher| matcher > value }
+    ATOMS['$leq'] = lambda{|value,matcher| matcher >= value }
+    ATOMS['$gt'] = lambda{|value,matcher| matcher < value }
+    ATOMS['$geq'] = lambda{|value,matcher| matcher <= value }
+    ATOMS['$elemMatch'] = lambda{|value,matcher| Matcher.cast(matcher).matches_any?(value) }
+    ATOMS['$not'] = lambda{|value,matcher|
       if matcher.kind_of? Regexp
         value !~ matcher
       else
         !Matcher.cast(matcher).matches?(value)
       end
     }
-    Atoms['$all'] = lambda{|value,matcher|
+    ATOMS['$all'] = lambda{|value,matcher|
       matcher.all? do |sub|
         Matcher.match_atomic(value,sub)
       end
     }
+    ATOMS['$type'] = lambda{|value,matcher|
+      if value.kind_of? Array
+        value.any? do |sub|
+          BSON.types_for_object(sub).include? matcher
+        end
+      else
+        BSON.types_for_object(value).include? matcher
+      end
+      }
+    
     
     def self.match_atomic(value,matcher)
       if matcher.kind_of? Hash
         matcher.each do |function,arg|
-          return false unless Atoms[function].call(value,arg)
+          return false unless ATOMS[function].call(value,arg)
         end
       elsif matcher.kind_of? Regexp
         return false unless value =~ matcher
@@ -114,9 +123,11 @@ module Splash
     end
     
     def self.and(*args)
+      args.compact!
+      return nil unless args.any?
       result = Matcher.new
       args.each do |arg|
-        result = result.and(Matcher.cast(arg)) unless arg.nil?
+        result = result.and(Matcher.cast(arg))
       end
       return result
     end
@@ -124,7 +135,6 @@ module Splash
     protected
       def get_value(object,key)
         key.split('.').each do |part|
-          puts part.inspect
           object = object.send(part)
           return nil if object.nil?
         end

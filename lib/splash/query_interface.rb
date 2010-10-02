@@ -36,7 +36,7 @@ CODE
       end
       
       def query_conditions(conditions)
-        return {:selector=>conditions}
+        return {:query=>conditions}
       end
       
       def query_default_attributes(values)
@@ -54,9 +54,9 @@ CODE
           end
         end
         if ids.size == 1
-          return {:selector=>{"_id"=>ids.first}}
+          return {:query=>{"_id"=>ids.first}}
         else
-          return {:selector=>{"_id"=>{"$in"=>ids}}}
+          return {:query=>{"_id"=>{"$in"=>ids}}}
         end
       end
       

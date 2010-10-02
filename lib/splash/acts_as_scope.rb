@@ -17,6 +17,9 @@ module Splash
             end
             limit = ( last - offset ) - ( range.exclude_end? ? 1 : 0 )
             return query( :limit => limit, :skip => offset )
+          else
+            # id query
+            return query( :conditions => {'_id'=>args.first} ).first
           end
         elsif args.size == 2
           offset = args[0].to_int
@@ -54,8 +57,16 @@ module Splash
     end
     
     def each(&block)
-      self.clone.scope_cursor.each do |o|
-        yield Saveable.load(o,self)
+      a = block.arity
+      if a == 1
+        self.clone.scope_cursor.each do |o|
+          yield Saveable.load(o,self)
+        end
+      elsif a == 2
+        self.clone.scope_cursor.each do |o|
+          l = Saveable.load(o,self)
+          yield(l._id,l.value)
+        end
       end
       self
     end
@@ -68,6 +79,14 @@ module Splash
       return result
     end
     
+    def to_h
+      result = {}
+      each do |key,value|
+        result[key]=value
+      end
+      return result
+    end
+    
     def has_next?
       scope_cursor.has_next?
     end
@@ -75,11 +94,11 @@ module Splash
     def next_document
       nd = scope_cursor.next_document
       return nil if nd.nil?
-      return Saveable.load(nd,self)
+      return Saveable.load(nd,self.scope_root)
     end
     
     def first
-      self.clone.limit(1).next_document
+      self.limit(1).next_document
     end
     
     def clone
@@ -88,10 +107,6 @@ module Splash
     
     def next_raw_document
       scope_cursor.next_document
-    end
-    
-    def inspect
-      scope_options.inspect
     end
     
     def count
@@ -122,10 +137,23 @@ module Splash
     end
 
     def update(*args)
-      
+      options = find_options
+      self.scope_root.collection.update(options[0],*args)
+    end
+
+    def map_reduce(map,reduce,opts={})
+      self.query(opts.only([:query,:sort,:limit])).map_reduce!(map,reduce,opts)
     end
 
     protected
+      def map_reduce!(map,reduce,opts)
+        opts = opts.only([:finalize,:out,:keeptemp,:verbose])
+        query, options = find_options
+        opts[:query] = query
+        opts = opts.merge(options)
+        return Splash::MapReduceResult.new(self.scope_root.collection.map_reduce(map,reduce,opts))
+      end
+    
       def scope_cursor()
         @scope_cursor ||= find!
       end
@@ -142,9 +170,15 @@ module Splash
         self.scope_root.collection.find(*find_options)
       end
       
+      def update!(*args)
+        
+      end
+      
       def find_options
         selector,options = scope_options.selector,scope_options.options
-        selector["Type"]=self.scope_root.to_s
+        if self.scope_root.kind_of? Splash::Saveable
+          selector["Type"]=self.scope_root.to_s
+        end
         return [selector,options]
       end
       

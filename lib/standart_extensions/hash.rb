@@ -31,6 +31,10 @@ class Hash
     self.reject{|key,val| !keys.include? key}
   end
   
+  def except(keys)
+    self.reject{|key,val| keys.include? key}
+  end
+  
   def hashmap
     self.inject({}) do |newhash, (k,v)|
       newhash[k] = yield(k, v)

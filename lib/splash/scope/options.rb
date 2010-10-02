@@ -9,7 +9,7 @@ class Splash::Scope::Options
   end
   
   def initialize(hsh=nil)
-    @options={:selector=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil}
+    @options={:query=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil}
     @options.merge! hsh if hsh
     @options.freeze
   end
@@ -20,7 +20,7 @@ class Splash::Scope::Options
   
   def self.merge_options(a,b)
     return {
-      :selector => Splash::Matcher.and(a[:selector],b[:selector]),
+      :query => Splash::Matcher.and(a[:query],b[:query]),
       :fieldmode => (b[:fieldmode] || a[:fieldmode]),
       :extend_scoped => (a[:extend_scoped] + (b[:extend_scoped] || [])),
       :limit => (b[:limit] || a[:limit]),
@@ -39,7 +39,7 @@ class Splash::Scope::Options
   end
   
   def selector
-    @options[:selector] || Splash::Matcher.new
+    @options[:query] || Splash::Matcher.new
   end
   
   def writeback(to)

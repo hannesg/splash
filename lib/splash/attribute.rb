@@ -2,10 +2,20 @@ class Splash::Attribute
   
   include Splash::HasConstraint
   
-  attr_accessor :persister, :type, :default
+  NIL_LAMBDA = lambda{ nil }
+  
+  attr_accessor :persister, :type
+  
+  def default(&block)
+    if block_given?
+      @default_block = block
+    end
+    @default_block.call
+  end
   
   def initialize(t=nil,&block)
     self.type=t if t
+    @default_block = NIL_LAMBDA
     instance_eval &block if block_given?
   end
   
@@ -34,11 +44,7 @@ class Splash::Attribute
   end
   
   def missing()
-    if self.default
-      self.default.clone
-    else
-      nil
-    end
+    self.default
   end
   
 end

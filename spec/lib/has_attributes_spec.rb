@@ -19,7 +19,9 @@ describe Splash::HasAttributes do
         
         def_attribute( 'mails', Splash::Collection.of(String)) do
           
-          self.default = Splash::Collection.of(String).new
+          default{
+            Splash::Collection.of(String).new
+          }
           
         end
         

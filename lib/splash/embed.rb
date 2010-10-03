@@ -26,6 +26,10 @@ module Splash::Embed
     def persister
       Splash::Saveable::EmbedPersister
     end
+    
+    def from_saveable(args)
+      new(args)
+    end
   end
   
   def initialize(args={})

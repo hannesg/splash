@@ -44,8 +44,22 @@ class Splash::Attribute
     @persister.persisted_class
   end
   
-  def missing()
+  def missing
     self.default
+  end
+  
+  def writeable?
+    true
+  end
+  
+  def initial_value
+    return type.initial_value if type && type.respond_to?(:initial_value)
+    ::NotGiven
+  end
+  
+  def before_write(value)
+    return type.before_write(value) if type && type.respond_to?(:before_write)
+    value
   end
   
 end

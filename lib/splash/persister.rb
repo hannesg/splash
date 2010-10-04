@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 class Splash::Persister
   
-  RAW_TYPES=[String,NilClass,Numeric,FalseClass,TrueClass,BSON::ObjectId,Time]
+  RAW_TYPES=[String,NilClass,Numeric,FalseClass,TrueClass,BSON::ObjectId,Time,BSON::Code,Symbol]
   
   attr_reader :persisted_class
   

@@ -29,6 +29,7 @@ module Splash
       end
       
       def []=(key,value)
+        return if ::NotGiven == value
         key=key.to_s
         if value.kind_of? type(key).persisted_class
           self.write(key,value)
@@ -44,6 +45,7 @@ module Splash
         super()
         @class = klass
         @raw = {}
+        complete!
       end
       
       def raw
@@ -56,6 +58,20 @@ module Splash
       end
       
       protected
+        def complete!
+          keys = Set.new
+          @class.each_attributes do |attrs|
+            attrs.each do |k,v|
+              unless keys.include?(k)
+                keys << k
+                self[k]=v.initial_value
+              end
+              
+            end
+          end
+          return self
+        end
+        
         def write_back!
           self.each do |key,value|
             @raw[key]=type(key).write(value)

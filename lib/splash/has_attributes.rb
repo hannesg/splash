@@ -31,7 +31,7 @@ module Splash
       def []=(key,value)
         return if ::NotGiven == value
         key=key.to_s
-        if value.kind_of? type(key).persisted_class
+        if value.kind_of? type(key).type
           self.write(key,value)
         elsif Splash::Persister.raw? value
           @raw[key]=value
@@ -86,19 +86,6 @@ module Splash
           merged_inheritable_attr :attributes,{}
         end
       end
-      
-      def get_persister(*args,&block)
-        klass = Object
-        if args.length > 0
-          if args.first.respond_to? :persister
-            klass = args.shift
-          end
-        end
-        type = (klass).persister
-        result=type.new(*args,&block)
-        result.persist_class(klass)
-        return result
-      end
     end
     
     def attributes
@@ -119,7 +106,7 @@ module Splash
       "#{self.class.to_s}{#{attributes.raw.inspect}}"
     end
     
-    def to_saveable
+    def to_raw
       attributes.raw
     end
     
@@ -136,7 +123,8 @@ module Splash
     end
     
     def initialize(attr={})
-      attributes.load(attr)
+      self.attributes.load(attr)
+      super()
     end
     
     module ClassMethods
@@ -172,6 +160,10 @@ CODE
           return true if attr.key? name
         end
         return false
+      end
+      
+      def from_raw(data)
+        self.new(data)
       end
       
     end

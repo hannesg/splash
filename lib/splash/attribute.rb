@@ -7,11 +7,14 @@ class Splash::Attribute
   
   attr_accessor :persister, :type
   
-  def default(&block)
+  def default(fn=nil,*args,&block)
     if block_given?
       @default_block = block
+    elsif !fn.nil? 
+      @default_block = lambda{ self.send(fn,*args) }
+    else
+      type.instance_eval &@default_block
     end
-    @default_block.call
   end
   
   def initialize(t=Object,&block)
@@ -25,10 +28,11 @@ class Splash::Attribute
     @type = t
   end
   
-  def persisted_by(*args,&block)
-    @persister = Splash::HasAttributes.get_persister(*args, &block)
+  def persisted_by(p)
+    @persister = p
   end
   
+  # persisting interface
   def read(value)
     @persister.from_saveable(value)
   end
@@ -37,10 +41,7 @@ class Splash::Attribute
     @persister.to_saveable(value)
   end
   
-  def persisted_class
-    return @type
-  end
-  
+  # type interface
   def missing
     self.default
   end

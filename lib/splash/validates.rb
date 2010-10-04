@@ -16,6 +16,7 @@ module Splash::Validates
   
   class << self
     def included(base)
+      super(base)
       base.instance_eval do
         merged_inheritable_attr :validators,Set.new
       end

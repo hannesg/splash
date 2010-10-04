@@ -20,13 +20,20 @@ module Splash::Document
   
   include Splash::Saveable
   include Splash::HasAttributes
+  include Splash::HasCollection
   include Splash::Validates
   
   class << self
     def included(base)
+      
       included_modules.each do |mod|
-        mod.included(base)
+        begin
+          mod.included(base)
+        rescue NoMethodError
+        end
       end
+      
+      super(base)
       
       base.instance_eval do
         #include Splash::ActsAsCollection.of(base)
@@ -47,12 +54,8 @@ module Splash::Document
     end
   end
   
-  def initialize(args={})
-    self.attributes.load(args)
-  end
-  
-  def to_saveable
-    attributes.raw
+  def initialize(attr={})
+    self.attributes.load(attr)
   end
   
 end

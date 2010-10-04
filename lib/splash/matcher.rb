@@ -3,6 +3,11 @@ module Splash
   
   class Matcher < Hash
     
+    WHERE = '$where'
+    
+    OR = '$or'
+    
+    
     ATOMS = Hash.new do |hash,key|
       hash[key] = lambda{|value,matcher| false}
     end
@@ -54,11 +59,16 @@ module Splash
     
     def matches?(object)
       self.each do |key,matcher|
-        if key == '$or'
+        if key == OR
           return false unless matcher.any? do |sub|
             Matcher.cast(sub).matches?(object)
           end
           next
+        elsif key == WHERE
+          # 
+          # johnson anyone?
+          # 
+          return true
         end
         value = get_value(object,key)
         
@@ -82,8 +92,13 @@ module Splash
     def and(other)
       result = Matcher.new
       other.each do |k,v|
-        if k == '$or'
-          result['$or'] = (self['$or'] || []) + v
+        if k == OR
+          result[OR] = (self[OR] || []) + v
+        elsif k == WHERE
+          if self.key?(k) # ierkssss!
+            warn "$where can't be merged!"
+          end
+          result[k]=v
         elsif self.key?(k)
           if self[k].kind_of? Hash and v.kind_of? Hash
             result[k] = self[k].merge(v)
@@ -111,13 +126,13 @@ module Splash
     
     def or(other)
       Matcher.cast({
-        '$or' => (self.dnf + other.dnf)
+        OR => (self.dnf + other.dnf)
       })
     end
     
     def dnf
       base = self.dup
-      self_or = base.delete('$or',[Matcher.new])
+      self_or = base.delete(OR,[Matcher.new])
       return self_or.map do |sub|
         sub.and(base)
       end

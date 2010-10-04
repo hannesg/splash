@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 module Splash
-  class MapReduceResult
+  module MapReduceResult
     
     module OneTimeCollection
       
@@ -14,21 +14,64 @@ module Splash
       
     end
     
-    attr_accessor :collection
-    
-    include Splash::ActsAsScopeRoot
-    
-    def initialize(collection)
-      @collection = collection
-      @collection.extend(OneTimeCollection)
+    def self.from_result(ns, res)
+      
+      col = ns.collection(res['result'])
+      
+      col.extend(OneTimeCollection)
+      
+      c = Class.new do
+        
+        include MapReduceResult
+        
+        namespace ns
+        collection col
+        
+      end
+      
+      return c
+      
     end
     
-    def from_saveable(data)
-      AttributedStruct.new(data)
+    include Splash::Saveable
+    include Splash::HasAttributes
+    include Splash::HasCollection
+    
+    extend Splash::ActsAsScopeRoot
+    
+    class << self
+      def included(base)
+        
+        included_modules.each do |mod|
+          begin
+            mod.included(base)
+          rescue NoMethodError
+          end
+        end
+        
+        super(base)
+        
+        base.instance_eval do
+          #include Splash::ActsAsCollection.of(base)
+          extend Splash::ActsAsScopeRoot
+          
+          def included(base)
+            Splash::Document.included(base)
+            super(base)
+          end
+          
+          def persister
+            Splash::Document::Persister.new(self.namespace)
+          end
+          
+          extend_scoped! Splash::ActsAsScope::HashlikeAccess
+          
+        end
+      end
     end
     
-    def [](key)
-      conditions('_id'=>key).next_document.value
+    def initialize(attr={})
+      self.attributes.load(attr)
     end
     
   end

@@ -29,8 +29,14 @@ module Splash
         end
         raise "bag arguments #{args.inspect}, expected a range or a limit and an offset"
       end
-      
     end
+    
+    module HashlikeAccess
+      def [](key)
+        return query( :conditions => {'_id'=>key} ).first.value
+      end
+    end
+    
     
     include QueryInterface
     
@@ -61,11 +67,11 @@ module Splash
       a = block.arity
       if a == 1
         self.clone.scope_cursor.each do |o|
-          yield Saveable.load(o,self)
+          yield Saveable.load(o,self.scope_root)
         end
       elsif a == 2
         self.clone.scope_cursor.each do |o|
-          l = Saveable.load(o,self)
+          l = Saveable.load(o,self.scope_root)
           yield(l._id,l.value)
         end
       end
@@ -148,11 +154,12 @@ module Splash
 
     protected
       def map_reduce!(map,reduce,opts)
-        opts = opts.only([:finalize,:out,:keeptemp,:verbose])
+        opts = opts.only([:finalize,:out,:keeptemp,:verbose,:scope])
         query, options = find_options
         opts[:query] = query
+        opts[:raw] = true
         opts = opts.merge(options)
-        return Splash::MapReduceResult.new(self.scope_root.collection.map_reduce(map,reduce,opts))
+        return Splash::MapReduceResult.from_result(self.scope_root.namespace,self.scope_root.collection.map_reduce(map,reduce,opts))
       end
     
       def scope_cursor()

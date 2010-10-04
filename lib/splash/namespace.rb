@@ -4,6 +4,14 @@ require "delegate"
 module Splash
   class Namespace
     
+    NAMESPACES = Hash.new do |hash,key|
+      if( key == :default )
+        hash[:default] = Namespace.new
+      else
+        raise "unknow namespace #{key.inspect}"
+      end
+    end
+    
     URI_MATCHER = /^mongodb:\/\/([^\/:@]+)(:\d+|)\/(.*)/.freeze
     
     #LOGGER = ::Logger.new(STDOUT)
@@ -35,11 +43,11 @@ module Splash
     self.logger.level = Logger::WARN
     
     def self.default
-      @default ||= self.new
+      NAMESPACES[:default]
     end
     
     def self.default=(value)
-      @default = value
+      NAMESPACES[:default] = value
     end
     
     def initialize(uri='mongodb://localhost/splash')
@@ -49,6 +57,8 @@ module Splash
       else
         @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LoggerDelegator.new).db(match[3])
       end
+      @class_collection_map = {}
+      @top_classes = {}
     end
     
     def clear!
@@ -62,12 +72,28 @@ module Splash
     end
     
     def collection_for(klass)
-      @class_collection_map ||= {}
-      @top_classes ||={}
       return @class_collection_map[klass] if( @class_collection_map.key? klass)
       
       
-      classes=Saveable.get_class_hierachie(klass)
+      classes=[]
+      
+      thiz = self
+      
+      klass.self_and_superclasses do |k|
+        if @class_collection_map.key? k
+          collection = @class_collection_map[k]
+          classes.each do |sk|
+            @class_collection_map[sk]=collection
+          end
+          return collection
+        elsif k.named? and k.respond_to?(:namespace) && k.namespace == thiz
+          classes.push(k)
+        else
+          break
+        end
+      end
+      
+      @class_collection_map.key? classes.last
       
       collection=@db.collection(classes.last.to_s.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }.gsub("::",".").downcase)
       
@@ -86,6 +112,18 @@ module Splash
     
     def dereference(dbref)
       self.class_for(dbref.namespace)[dbref.object_id]
+    end
+    
+    def collection(name)
+      @db.collection(name)
+    end
+    
+    def register(klass,collection,top=true)
+      collection = self.collection(collection) if collection.kind_of? String
+      @class_collection_map[klass] = collection
+      if top
+        @top_classes[collection.name] = klass
+      end
     end
     
   end

@@ -15,6 +15,7 @@ module Splash::Embed
   
   
   include Splash::HasAttributes
+  include Splash::Saveable
   include Splash::Validates
   
   class << self
@@ -44,17 +45,6 @@ module Splash::Embed
     def persister
       Splash::Embed::Persister
     end
-    
-    def from_saveable(data)
-      new(data)
-    end
   end
   
-  def initialize(args={})
-    self.attributes.load(args)
-  end
-  
-    def to_saveable
-      attributes.raw
-    end
 end

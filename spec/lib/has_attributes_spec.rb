@@ -96,11 +96,74 @@ describe Splash::HasAttributes do
     user.sessions << TestSession.new.store!
     user.sessions << TestSession.new.store!
     
-    puts user.to_saveable.inspect
-    
     user.store!
     
     TestUser.first.sessions.should have(3).items
+    
+  end
+  
+  describe "defaults" do
+    
+    it "should support an easy way to create new instances of the given object" do
+      
+      class TestThing
+      
+        include Splash::HasAttributes
+        
+        attribute 'foo', String do
+          
+          default &:new
+          
+        end
+        
+      end
+      
+      TestThing.new.foo.should == ''
+      
+      
+      TestThing.attribute('foo').type = Array
+      
+      TestThing.new.foo.should == []
+      
+    end
+    
+    it "should be able to create defaults with args" do
+      
+      class TestThing
+      
+        include Splash::HasAttributes
+        
+        attribute 'zoom', Array do
+          
+          # a bit counterintuitve ...
+          default :new, 4, 2
+          
+        end
+        
+      end
+      
+      TestThing.new.zoom.should == Array.new(4,2)
+      
+    end
+    
+    it "should be able to create defaults" do
+      
+      class TestThing
+      
+        include Splash::HasAttributes
+        
+        attribute 'bar', String do
+          
+          default{ "baz"}
+          
+        end
+        
+      end
+      
+      TestThing.new.bar.should == "baz"
+      
+    end
+    
     
   end
   

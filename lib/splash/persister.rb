@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Persister
   
   RAW_TYPES=[String,NilClass,Numeric,FalseClass,TrueClass,BSON::ObjectId,Time]

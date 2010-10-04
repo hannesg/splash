@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require File.join File.dirname(__FILE__), "object"
 require File.join File.dirname(__FILE__), "module"
 class Hash

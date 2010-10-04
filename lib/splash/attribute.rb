@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Attribute
   
   include Splash::HasConstraint

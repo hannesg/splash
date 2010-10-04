@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Collection < Array
   include Splash::ActsAsCollection
   

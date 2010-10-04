@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Splash::Embed
   
   include Splash::HasAttributes

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Constraint::In
   
   include Splash::Constraint

@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 if defined? Splash
   raise "Splash included twice!"
 end

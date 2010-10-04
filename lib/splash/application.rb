@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Splash
   module Application
     class << self

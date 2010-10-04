@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Splash
   module Saveable
     class Persister < Splash::Persister

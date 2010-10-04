@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require "logger"
 require "delegate"
 module Splash
@@ -18,6 +19,10 @@ module Splash
       
       def __getobj__
         Splash::Namespace.logger
+      end
+
+      def __setobj__(obj)
+        Splash::Namespace.logger=obj
       end
       
     end

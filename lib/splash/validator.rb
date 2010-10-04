@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Validator
   
   attr_reader :field,:block,:description,:depends

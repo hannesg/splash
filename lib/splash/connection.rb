@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Connection
   def initialize(host,db)
     @host=host

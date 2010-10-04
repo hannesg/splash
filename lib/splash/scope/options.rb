@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Splash::Scope::Options
   
   OPTION_KEYS=[:fields,:limit,:sort, :skip]

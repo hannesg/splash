@@ -71,4 +71,37 @@ describe Splash::HasAttributes do
     
   end
   
+  it "should support collections" do
+    
+    class TestSession
+      
+      include Splash::Document
+      
+    end
+    
+    class TestUser
+      
+      include Splash::Document
+      
+      attribute( "sessions", Splash::Collection.of(TestSession) ){
+        default{ Splash::Collection.of(TestSession).new }
+      }
+      
+    end
+    
+    
+    user = TestUser.new
+    
+    user.sessions << TestSession.new.store!
+    user.sessions << TestSession.new.store!
+    user.sessions << TestSession.new.store!
+    
+    puts user.to_saveable.inspect
+    
+    user.store!
+    
+    TestUser.first.sessions.should have(3).items
+    
+  end
+  
 end

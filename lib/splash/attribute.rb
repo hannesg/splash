@@ -14,14 +14,14 @@ class Splash::Attribute
     @default_block.call
   end
   
-  def initialize(t=nil,&block)
-    self.type=t if t
+  def initialize(t=Object,&block)
+    self.type = t
     @default_block = NIL_LAMBDA
     instance_eval &block if block_given?
   end
   
   def type= t
-    @persister = Splash::HasAttributes.get_persister(t)
+    @persister = t.persister
     @type = t
   end
   
@@ -30,18 +30,15 @@ class Splash::Attribute
   end
   
   def read(value)
-    return value unless @persister
-    @persister.read(value)
+    @persister.from_saveable(value)
   end
   
   def write(value)
-    return value unless @persister
-    @persister.write(value)
+    @persister.to_saveable(value)
   end
   
   def persisted_class
-    return Object unless @persister
-    @persister.persisted_class
+    return @type
   end
   
   def missing

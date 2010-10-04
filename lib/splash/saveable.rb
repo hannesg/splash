@@ -1,50 +1,12 @@
 # -*- encoding : utf-8 -*-
 module Splash
   module Saveable
-    class Persister < Splash::Persister
-      def write(value)
-        return nil if value.nil?
-        return value._id
-      end
-      
-      def read(value)
-        return nil if value.nil?
-        return persisted_class.with_id(value).first
-      end
-    end
-    
-    class MultiPersister < Splash::Persister
-      def write(value)
-        return nil if value.nil?
-        return BSON::DBRef.new(value.class.collection.name,value._id)
-      end
-      
-      def read(value)
-        return nil if value.nil?
-        return @persisted_class.namespace.dereference(value)
-      end
-    end
-    
-    class EmbedPersister < Splash::Persister
-      def write(value)
-        return nil if value.nil?
-        return Saveable.wrap(value)
-      end
-      
-      def read(value)
-        return nil if value.nil?
-        return Saveable.load(value,persisted_class)
-      end
-    end
-    
-    self.persister= MultiPersister
     
     UPPERCASE=65..90
     
     class << self
       def included(base)
         base.extend(ClassMethods)
-        base.persister=Splash::Saveable::Persister
       end
       
       def unwrap(keys)

@@ -47,7 +47,7 @@ module Splash::ActsAsCollection
   end
   
   def accepts?(object)
-    return object === collection_class
+    return object.kind_of? collection_class
   end
   
   def include?(object)

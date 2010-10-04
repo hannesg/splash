@@ -2,7 +2,7 @@
 class Module
   
   def persister
-    @persister ||= Splash::Persister
+    @persister || self
   end
   
   def persister=(p)

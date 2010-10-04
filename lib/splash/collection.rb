@@ -18,35 +18,37 @@ class Splash::Collection < Array
   end
   
 
-  class Persister < Splash::Persister
+  class Persister
 
-    def read(val)
+    attr_accessor :entry_persister
+
+    def from_saveable(val)
       return nil if val.nil?
-      nu=persisted_class.new
+      nu=@base_class.new
       val.inject(nu){|memo,e|
-        memo << @persister.read(e)
+        memo << @entry_persister.from_saveable(e)
         memo
       }
     end
     
-    def write(val)
+    def to_saveable(val)
       return nil if val.nil?
       val.inject([]){|memo,e|
-        memo << @persister.write(e)
+        memo << @entry_persister.to_saveable(e)
         memo
       }
     end
     
-    def persist_class(col)
-      @persister=Splash::HasAttributes.get_persister(col.collection_class)
-      super
+    def initialize(klass, entry_persister)
+      @base_class = klass
+      @entry_persister = entry_persister
     end
     
   end
   
   class << self
     def persister
-      return Splash::Collection::Persister
+      return Splash::Collection::Persister.new(self, @collection_class.persister)
     end
   end
 

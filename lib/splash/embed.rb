@@ -2,14 +2,14 @@
 module Splash::Embed
   
   class Persister
-    def to_saveable(value)
+    def self.to_saveable(value)
       return nil if value.nil?
-      return Saveable.wrap(value)
+      return Splash::Saveable.wrap(value)
     end
     
-    def from_saveable(value)
+    def self.from_saveable(value)
       return nil if value.nil?
-      return Saveable.load(value)
+      return Splash::Saveable.load(value)
     end
   end
   
@@ -22,7 +22,10 @@ module Splash::Embed
     def included(base)
       base.extend(ClassMethods)
       included_modules.each do |mod|
-        mod.included(base)
+        begin
+          mod.included(base)
+        rescue NoMethodError
+        end
       end
     end
     

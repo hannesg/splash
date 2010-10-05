@@ -13,6 +13,9 @@ module Splash
       end
       
       def load_raw(raw)
+        raw.keys.each do |k|
+          self.delete k
+        end
         @raw.update(raw)
       end
       
@@ -163,7 +166,10 @@ CODE
       end
       
       def from_raw(data)
-        self.new(data)
+        c = self.new()
+        c
+        c.attributes.load_raw(data)
+        return c
       end
       
     end

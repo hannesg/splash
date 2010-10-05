@@ -54,8 +54,4 @@ module Splash::Document
     end
   end
   
-  def initialize(attr={})
-    self.attributes.load(attr)
-  end
-  
 end

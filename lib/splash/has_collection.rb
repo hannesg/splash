@@ -26,8 +26,10 @@ module Splash
     end
     
     def ==(other)
-      return ( other.kind_of?(Splash::HasCollection) and self.namespace == other.namespace and self._id == other._id )
+      return ( other.kind_of?(Splash::HasCollection) and self.class.namespace == other.class.namespace and self._id == other._id )
     end
+    
+    alias eq? ==
     
     module ClassMethods
       

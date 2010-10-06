@@ -2,17 +2,21 @@
 module Splash::Embed
   
   class Persister
-    def self.to_saveable(value)
+    def to_saveable(value)
       return nil if value.nil?
       return Splash::Saveable.wrap(value)
     end
     
-    def self.from_saveable(value)
+    def from_saveable(value)
       return nil if value.nil?
-      return Splash::Saveable.load(value)
+      return Splash::Saveable.load(value,@base_class)
     end
+    
+    def initialize(klass)
+      @base_class = klass
+    end
+    
   end
-  
   
   include Splash::HasAttributes
   include Splash::Saveable
@@ -40,13 +44,13 @@ module Splash::Embed
     end
     
     def persister
-      Splash::Embed::Persister
+      Splash::Embed::Persister.new(self.define{})
     end
   end
   
   module ClassMethods
     def persister
-      Splash::Embed::Persister
+      Splash::Embed::Persister.new(self)
     end
   end
   

@@ -107,7 +107,8 @@ module Splash
     end
     
     def class_for(collection_name)
-      @top_classes[collection_name]
+      return @top_classes[collection_name] if @top_classes[collection_name]
+      return @top_classes[collection_name] = Kernel.const_get(collection_name.gsub(/(^|_)([a-z])/){|c| c[0,2].upcase })
     end
     
     def dereference(dbref)

@@ -50,6 +50,26 @@ module Splash
       NAMESPACES[:default] = value
     end
     
+    def class_to_collection_name(klass_name,recheck = true)
+      cn = klass_name.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }
+      cn.gsub!(/::([A-Z])/){|d| "." + (d[2,1].downcase) }
+      cn[0...1] = cn[0...1].downcase
+      if recheck
+        raise "#{klass_name} won't be findable as #{cn} ( got: #{self.collection_to_class_name(cn,false)} )" if self.collection_to_class_name(cn,false) != klass_name
+      end
+      return cn
+    end
+    
+    def collection_to_class_name(collection_name, recheck = true)
+      kn = collection_name.gsub(/_([a-z])/){|c| c[1,2].upcase }
+      kn.gsub!(/\.[a-z]/){|c| '::'+c[1,1].upcase}
+      kn[0...1] = kn[0...1].upcase
+      if recheck
+        raise "#{collection} won't find a class #{kn} ( got: #{self.class_to_collection_name(kn,false)} )" if self.class_to_collection_name(kn,false) != collection_name
+      end
+      return kn
+    end
+    
     def initialize(uri='mongodb://localhost/splash')
       match = URI_MATCHER.match(uri)
       if match.nil?
@@ -95,7 +115,7 @@ module Splash
       
       @class_collection_map.key? classes.last
       
-      collection=@db.collection(classes.last.to_s.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }.gsub("::",".").downcase)
+      collection=@db.collection(self.class_to_collection_name(classes.last.to_s))
       
       @top_classes[collection.name] = classes.last
       
@@ -108,11 +128,11 @@ module Splash
     
     def class_for(collection_name)
       return @top_classes[collection_name] if @top_classes[collection_name]
-      return @top_classes[collection_name] = Kernel.const_get(collection_name.gsub(/(^|_)([a-z])/){|c| c[0,2].upcase })
+      return @top_classes[collection_name] = Kernel.const_get(collection_to_class_name(collection_name))
     end
     
     def dereference(dbref)
-      self.class_for(dbref.namespace)[dbref.object_id]
+      self.class_for(dbref.namespace).conditions('_id'=>dbref.object_id).first
     end
     
     def collection(name)

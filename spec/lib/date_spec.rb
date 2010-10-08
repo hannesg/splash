@@ -86,6 +86,8 @@ describe "Time" do
     
     it "should be changed on update" do
       
+      pending "not developed yet"
+      
       TestPost3.new.store!
       
       tp = TestPost3.first

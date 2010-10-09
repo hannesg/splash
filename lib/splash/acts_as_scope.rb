@@ -37,8 +37,8 @@ module Splash
       end
     end
     
-    
     include QueryInterface
+    include Scope::MapReduceInterface
     
     
     # the following methods have to be defined
@@ -148,18 +148,19 @@ module Splash
       self.scope_root.collection.update(options[0],*args)
     end
 
-    def map_reduce(map,reduce,opts={})
-      self.query(opts.only([:query,:sort,:limit])).map_reduce!(map,reduce,opts)
+    def raw_map_reduce(map,reduce,opts={})
+      query, options = self.find_options
+      options = options.merge(opts)
+      options[:query] = query
+      self.scope_root.map_reduce(map,reduce,opts)
     end
 
     protected
       def map_reduce!(map,reduce,opts)
-        opts = opts.only([:finalize,:out,:keeptemp,:verbose,:scope])
-        query, options = find_options
-        opts[:query] = query
-        opts[:raw] = true
-        opts = opts.merge(options)
-        return Splash::MapReduceResult.from_result(self.scope_root.namespace,self.scope_root.collection.map_reduce(map,reduce,opts))
+        
+        #opts = opts.merge(options)
+        
+        #return Splash::MapReduceResult.from_result(self.scope_root.namespace,self.scope_root.collection.map_reduce(map,reduce,opts))
       end
     
       def scope_cursor()

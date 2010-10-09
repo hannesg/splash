@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
-describe Splash::MapReduceResult do
+describe Splash::MapReduce do
   
   it "should work" do
     
@@ -37,7 +37,10 @@ function(key,values){
   return total;
 }
 REDUCE
-    Post.map_reduce(map,reduce)['niccer'].should == 2
+
+    mr = Post.map_reduce(map,reduce)
+    puts mr.inspect
+    mr['niccer'].should == 2
   end
   
   it "should work with javascript scope" do

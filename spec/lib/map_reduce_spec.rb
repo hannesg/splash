@@ -39,8 +39,7 @@ function(key,values){
 REDUCE
 
     mr = Post.map_reduce(map,reduce)
-    puts mr.inspect
-    mr['niccer'].should == 2
+    mr['niccer'].value.should == 2
   end
   
   it "should work with javascript scope" do
@@ -77,7 +76,52 @@ function(key,values){
   return total;
 }
 REDUCE
-    Post.map_reduce(map,reduce)['niccer'].should == 2
+    Post.map_reduce(map,reduce)['niccer'].value.should == 2
+  end
+  
+  describe "Permanent" do
+    
+    it "should work in a trivial case" do
+      
+      class Post
+      
+        include Splash::Document
+        
+        attribute "tags"
+        
+        Tags = Splash::MapReduce[Post,<<-MAP,<<-REDUCE]
+function(){
+  this.tags.forEach(function(tag){
+    emit(tag,1);
+  });
+}
+MAP
+function(key,values){
+  var total = 0;
+  values.forEach(function(count){
+    total += count
+  });
+  return total;
+}
+REDUCE
+        
+      end
+      
+      tags = [["nice"],["niccer","spam"],["spam"],[],["niccer","nice"],["post"]]
+    
+      tags.each do |t|
+        
+        Post.new("tags"=>t).store!
+        
+      end
+      
+      Post::Tags.refresh!
+      
+      Post::Tags['niccer'].value.should == 2
+      
+    end
+    
+    
   end
   
 end

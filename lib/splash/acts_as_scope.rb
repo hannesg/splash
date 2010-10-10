@@ -148,21 +148,8 @@ module Splash
       self.scope_root.collection.update(options[0],*args)
     end
 
-    def raw_map_reduce(map,reduce,opts={})
-      query, options = self.find_options
-      options = options.merge(opts)
-      options[:query] = query
-      self.scope_root.map_reduce(map,reduce,opts)
-    end
-
     protected
-      def map_reduce!(map,reduce,opts)
-        
-        #opts = opts.merge(options)
-        
-        #return Splash::MapReduceResult.from_result(self.scope_root.namespace,self.scope_root.collection.map_reduce(map,reduce,opts))
-      end
-    
+      
       def scope_cursor()
         @scope_cursor ||= find!
       end

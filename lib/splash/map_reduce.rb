@@ -1,31 +1,63 @@
 module Splash
   
   module MapReduce
-    attr_reader :map, :reduce, :options
+    
+    class Result
+      include Splash::Document
+    end
+    
+    def map
+      return @__map_reduce_options[:map]
+    end
+    
+    def reduce
+      return @__map_reduce_options[:reduce]
+    end
+    
+    def map_reduce_callback
+      return @__map_reduce_options[:callback]
+    end
+    
+    private :map_reduce_callback
     
     module ClassMethods
       
-      def from_callback(callback,map,reduce,options)
+      def from_callback(callback,map,reduce,options,&block)
         thiz = self
         
-        return Class.new do
-          include Splash::HasAttributes
-          include Splash::HasCollection
+        map = BSON::Code.new(map) if map.kind_of? String
+        reduce = BSON::Code.new(reduce) if reduce.kind_of? String
+        
+        c = Class.new(Result) do
+          
+          @__map_reduce_options = {
+            :callback => callback.freeze,
+            :map => map.freeze,
+            :reduce => reduce.freeze,
+            :options => options.dup.freeze
+          }.freeze
           
           extend thiz
-          extend Splash::ActsAsScopeRoot
-          extend_scoped! Splash::ActsAsScope::HashlikeAccess
           
-          @callback, @map, @reduce, @options = callback.freeze, map.freeze, reduce.freeze, options.dup.freeze
         end
+        if block_given?
+          c.class_eval &block
+        end
+        m = c.map rescue nil
+        unless m.kind_of?(String) or m.kind_of?(BSON::Code)
+          raise ArgumentError,"String or BSON::Code expected, got #{m.inspect}. Please provide a map function or define a method called 'map'."
+        end
+        r = c.reduce rescue nil
+        unless r.kind_of?(String) or r.kind_of?(BSON::Code)
+          raise ArgumentError,"String or BSON::Code expected, got #{r.inspect}. Please provide a reduce function or define a method called 'reduce'."
+        end
+        return c
       end
       
-      def from_scope(scope, map, reduce, options={})
-        return scope.map_reduce(map, reduce, options)
-      end
-      
-      alias_method :[],:from_scope
-      
+    end
+    
+    def self.[](scope, map="", reduce="", options={},&block)
+      return scope.map_reduce(map, reduce, options.merge(:keeptemp => true),&block)
     end
     
     module Temporary
@@ -35,11 +67,16 @@ module Splash
       
       
       def collection
-        return generate_result
+        refresh!
+        super
       end
       
-      def default_options
-        {:keeptemp => false}
+      def map_reduce_options
+        options = @__map_reduce_options[:options].dup
+        options[:keeptemp] = false
+        options[:raw] = true
+        options[:out] = nil
+        return options
       end
       
     end
@@ -47,18 +84,22 @@ module Splash
     module Permanent
       
       include Splash::MapReduce
+      extend Splash::MapReduce::ClassMethods
       
-      def refresh!
-        # certainly a thing that should be done in background
-        generate_result
+      def map_reduce_options
+        options = @__map_reduce_options[:options].dup
+        options[:keeptemp] = true
+        options[:raw] = true
+        options[:out] = self.collection.name
+        return options
       end
       
     end
     
-    protected
-    
-    def generate_result
-      @callback.call(@map,@reduce,@options)
+    def refresh!
+      result = map_reduce_callback.call(map,reduce,map_reduce_options)
+      self.collection = self.namespace.collection(result["result"])
+      return result.except(["result","ok"])
     end
     
     

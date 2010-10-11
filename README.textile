@@ -1,0 +1,19 @@
+h1. splash - because mongodb is fun :)
+
+h2. Faq
+
+h3. What is it?
+
+A wrapper around the "mongo ruby driver":http://api.mongodb.org/ruby/ .
+
+h3. What are the advantages in comparison to use the bare driver?
+* With the bare driver you save and load nested hashes. With splash you load and save document structures as complex as you like.
+* Writing queries gets a lot more comfortable and you can abstract writing queries using scopes.
+* Single table inheritance is build in.
+* Map reduce becomes your friend.
+More to come ...
+
+
+h3. Okay, i've seen that on other gems
+
+True. The problem, this gem tries to solve, is very common and so there are many different approaches. Yet, I was not really satisfied with most of them, so I created my own.

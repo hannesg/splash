@@ -43,7 +43,27 @@ describe Splash::Namespace do
     
     Brxlwupf.namespace.class_for('brxlwupf').should == Brxlwupf
     
+  end
+  
+  it "should dereference correctly, even when the class has not yet accessed the collection" do
     
+    
+    c = Splash::Namespace.default.collection('brxlwopf')
+    id = c.insert({
+      'name' =>'Hallowed'
+    })
+    
+    class Brxlwopf
+      
+      include Splash::Document
+      
+      attribute "name"
+      
+    end
+    
+    found = Splash::Namespace.default.dereference(BSON::DBRef.new('brxlwopf',id))
+    found.should be_a(Brxlwopf)
+    found.name.should == 'Hallowed'
     
   end
   

@@ -5,6 +5,7 @@ module Splash
     def self.included(base)
       super(base)
       base.extend(ClassMethods)
+      base.instance_variable_set('@is_collection_base',true)
     end
     
     def store!
@@ -55,7 +56,7 @@ module Splash
           @namespace = arg
           @collection = nil
         else
-          @namespace = Splash::Namespace::NAMSPACE[arg]
+          @namespace = Splash::Namespace::NAMESPACES[arg]
           @collection = nil
         end
       end

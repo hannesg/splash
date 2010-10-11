@@ -12,6 +12,10 @@ module Splash
       end
     end
     
+    class ClassNotFound < NameError
+    end
+    
+    
     URI_MATCHER = /^mongodb:\/\/([^\/:@]+)(:\d+|)\/(.*)/.freeze
     
     #LOGGER = ::Logger.new(STDOUT)
@@ -19,18 +23,18 @@ module Splash
     
     attr_reader :db
     
-    class LoggerDelegator < Delegator
+    class LoggerDelegator < Logger
       
       def initialize
-        super(Splash::Namespace.logger)
+        super(nil)
       end
       
-      def __getobj__
-        Splash::Namespace.logger
+      def add(*args,&block)
+        Splash::Namespace.logger.add(*args,&block)
       end
 
-      def __setobj__(obj)
-        Splash::Namespace.logger=obj
+      def <<(msg)
+        Splash::Namespace.logger << msg
       end
       
     end
@@ -77,8 +81,13 @@ module Splash
       else
         @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LoggerDelegator.new).db(match[3])
       end
-      @class_collection_map = {}
-      @top_classes = {}
+      @uri = uri
+      #@class_collection_map = {}
+      #@top_classes = {}
+    end
+    
+    def to_s
+      @uri
     end
     
     def clear!
@@ -88,10 +97,31 @@ module Splash
         rescue Mongo::OperationFailure
         end
       end
+      #@top_classes.clear
+      #@class_collection_map.clear
       return true
     end
     
     def collection_for(klass)
+      thiz = self
+      last_named = nil
+      klass.self_and_superclasses do |k|
+        unless k.respond_to?(:namespace)
+          break
+        end
+        unless k.namespace == thiz
+          raise "Namespace mismatch: #{k} ( namespace: #{k.namespace.to_s} ) is a Superclass of #{klass} ( namespace: #{thiz.to_s} )."
+        end
+        if k.named?
+          last_named = k
+        end
+        if last_named and k.instance_variable_defined?('@is_collection_base')
+          return collection(self.class_to_collection_name(last_named.to_s))
+        end
+      end
+      raise "Couldn't find a collection for #{klass}!"
+      return nil
+=begin
       return @class_collection_map[klass] if( @class_collection_map.key? klass)
       
       
@@ -124,21 +154,41 @@ module Splash
       end
       
       return collection
+=end
     end
-    
+=begin
     def class_for(collection_name)
       return @top_classes[collection_name] if @top_classes[collection_name]
       return @top_classes[collection_name] = Kernel.const_get(collection_to_class_name(collection_name))
     end
+=end
+    def class_for(collection_name)
+      begin
+        return collection_to_class_name(collection_name).split('::').inject(Kernel) do |memo,obj|
+          memo.const_get(obj)
+        end
+      catch NameError => e
+        raise ClassNotFound.new('No Class found for ' + collection_name +'. Error received: ' + e.message)
+      end
+      
+      #return Kernel.const_get(collection_to_class_name(collection_name))
+    end
     
     def dereference(dbref)
-      self.class_for(dbref.namespace).conditions('_id'=>dbref.object_id).first
+      begin
+        klass = self.class_for(dbref.namespace) 
+        return Saveable.load( @db.dereference(dbref), klass)
+      rescue ClassNotFound => e
+        warn e.message
+      end
+      return Saveable.load( @db.dereference(dbref) )
+      #self.class_for(dbref.namespace).conditions('_id'=>dbref.object_id).first
     end
     
     def collection(name)
       @db.collection(name)
     end
-    
+=begin
     def register(klass,collection,top=true)
       collection = self.collection(collection) if collection.kind_of? String
       @class_collection_map[klass] = collection
@@ -146,6 +196,6 @@ module Splash
         @top_classes[collection.name] = klass
       end
     end
-    
+=end
   end
 end

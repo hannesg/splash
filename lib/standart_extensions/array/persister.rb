@@ -1,23 +1,4 @@
-# -*- encoding : utf-8 -*-
-class Splash::Collection < Array
-  include Splash::ActsAsCollection
-  
-  COLLECTION_CLASSES = {}
-  
-  def self.of(klass)
-    
-    return COLLECTION_CLASSES[klass] if COLLECTION_CLASSES.key? klass
-    
-    c = Class.new(self)
-    c.instance_eval do
-      @collection_class = klass
-    end
-    
-    COLLECTION_CLASSES[klass] = c
-    return c
-  end
-  
-
+class Array
   class Persister
 
     attr_accessor :entry_persister
@@ -45,11 +26,4 @@ class Splash::Collection < Array
     end
     
   end
-  
-  class << self
-    def persister
-      return Splash::Collection::Persister.new(self, @collection_class.persister)
-    end
-  end
-
 end

@@ -99,10 +99,10 @@ module Splash
       self.class.attribute(name)
     end
     
-    def respond_to?(meth)
+    def respond_to?(meth, include_private=false)
       return true if meth =~/^([a-zA-Z_]+)\?$/
       return true if meth =~ /^([a-zA-Z_]+)=$/
-      super(meth)
+      super(meth, include_private)
     end
     
     def inspect

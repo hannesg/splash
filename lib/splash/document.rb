@@ -45,7 +45,6 @@ module Splash::Document
       super(base)
       
       base.instance_eval do
-        #include Splash::ActsAsCollection.of(base)
         extend Splash::ActsAsScopeRoot
         
         def included(base)

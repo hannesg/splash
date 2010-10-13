@@ -20,7 +20,7 @@ describe Splash::Embed do
       
       attribute 'icq', ICQ
       
-      attribute 'friends', Splash::Collection.of(ICQ) do
+      attribute 'friends', Array.of(ICQ) do
         
         default &:new
         

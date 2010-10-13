@@ -19,7 +19,7 @@ module Splash
       @parent_scope
     end
     
-    def respond_to?(meth)
+    def respond_to?(meth, include_private=false)
       load_scope_extensions!
       super
     end

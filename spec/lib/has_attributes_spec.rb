@@ -13,22 +13,26 @@ describe Splash::HasAttributes do
         
         
         # simple style
-        def_attribute 'name'
+        attribute 'name'
         
         # simple with type
-        def_attribute 'friends', Splash::Collection.of(User)
+        attribute 'friends', Array.of(User)
         
-        def_attribute( 'mails', Splash::Collection.of(String)) do
+        attribute( 'mails', Array.of(String)) do
           
-          default{
-            Splash::Collection.of(String).new
-          }
+          default :new
+          
+        end
+        
+        attribute 'family', Hash.of(String, User) do
+          
+          default :new
           
         end
         
       end
       
-      User.attributes.should have(3).items
+      User.attributes.should have(4).items
       
       u = User.new
       
@@ -37,7 +41,9 @@ describe Splash::HasAttributes do
       u.friends.should be_nil
       
       u.mails.should_not be_nil
-      u.mails.should be_a(Splash::Collection.of(String))
+      u.mails.should be_a(Array.of(String))
+      
+      u.family.should be_a(Hash.of(String, User))
       
     end
     
@@ -83,8 +89,8 @@ describe Splash::HasAttributes do
       
       include Splash::Document
       
-      attribute( "sessions", Splash::Collection.of(TestSession) ){
-        default{ Splash::Collection.of(TestSession).new }
+      attribute( "sessions", Array.of(TestSession) ){
+        default :new
       }
       
     end

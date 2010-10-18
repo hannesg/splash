@@ -1,6 +1,7 @@
+# -*- encoding : utf-8 -*-
 module Splash
   
-  module Scope::MapReduceInterface
+  module ActsAsScope::MapReduceInterface
     
     MAP_REDUCE_QUERY_KEYS = [:query,:sort,:limit].to_set
     

@@ -66,4 +66,26 @@ describe Array do
   
   end
   
+  describe Array::Linked do
+    
+    it "should work in a simple case" do
+      
+      a = Array::Linked.new([1,2,3])
+      b = Array::Linked.new([4,5,6])
+      c = Array::Linked.new([7,8,9])
+      
+      a.successor = b
+      b.successor = c
+      
+      sum = 0
+      a.each do |value|
+        sum += value
+      end
+      
+      sum.should == 45
+      
+    end
+    
+  end
+  
 end

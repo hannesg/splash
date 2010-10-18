@@ -2,6 +2,8 @@
 module Splash
   module ActsAsScope
     
+    autoload_all File.join(File.dirname(__FILE__),'acts_as_scope')
+    
     module ArraylikeAccess
       def [](*args)
         if args.size == 1
@@ -38,7 +40,7 @@ module Splash
     end
     
     include QueryInterface
-    include Scope::MapReduceInterface
+    include MapReduceInterface
     
     
     # the following methods have to be defined
@@ -48,15 +50,11 @@ module Splash
     
     
     def scope_options
-      @scope_options ||= Splash::Scope::Options.new
+      @scope_options ||= Options.new
     end
     
     def query(options)
       Scope.new(self,scope_options.merge(options))
-    end
-    
-    def dup
-      
     end
     
     def all
@@ -148,6 +146,26 @@ module Splash
       self.scope_root.collection.update(options[0],*args)
     end
 
+    def respond_to?(meth, include_private=false)
+      load_scope_extensions!
+      super
+    end
+    
+    def new(*args,&block)
+      if scope_root?
+        return super
+      end
+      obj = scope_root.new(*args,&block)
+      @scope_options.writeback(obj)
+      return obj
+    end
+    
+    def create(*args,&block)
+      obj = self.new(*args,&block)
+      obj.store!
+      return obj
+    end
+
     protected
       
       def scope_cursor()
@@ -178,5 +196,22 @@ module Splash
         return [selector,options]
       end
       
+    private
+      def load_scope_extensions!
+        unless @scope_extesions_loaded
+          scope_options.extensions.each do |mod|
+            self.extend(mod)
+          end
+          @scope_extesions_loaded = true
+          return true
+        end
+        return false
+      end
+      def method_missing(meth,*args,&block)
+        if load_scope_extensions!
+          return self.send(meth,*args,&block)
+        end
+        super
+      end
   end
 end

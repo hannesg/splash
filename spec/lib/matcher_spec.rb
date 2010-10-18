@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
-describe Splash::Matcher do
+describe Splash::ActsAsScope::Matcher do
   
   describe "matching" do
     
@@ -13,7 +13,7 @@ describe Splash::Matcher do
       
       a.bar = 4
       
-      Splash::Matcher.cast(
+      Splash::ActsAsScope::Matcher.cast(
         'foo' => 'blue',
         'bar' => {'$lt' => 5}
       ).matches?(a).should be_true
@@ -62,7 +62,7 @@ describe Splash::Matcher do
       
       values.each do |value|
         
-        query = Splash::Matcher.cast('key'=>{'$type'=>BSON.type(value)})
+        query = Splash::ActsAsScope::Matcher.cast('key'=>{'$type'=>BSON.type(value)})
         
         db_result = IndecisiveKey.conditions(query).to_a
         
@@ -83,23 +83,23 @@ describe Splash::Matcher do
     
     it "should support merging in a trivial case" do
       
-      a = Splash::Matcher.new('name'=>'Max')
-      b = Splash::Matcher.new('age'=>20)
+      a = Splash::ActsAsScope::Matcher.new('name'=>'Max')
+      b = Splash::ActsAsScope::Matcher.new('age'=>20)
       
       a_and_b = a.and b
       
-      a_and_b.should == Splash::Matcher.new('name'=>'Max','age'=>20)
+      a_and_b.should == Splash::ActsAsScope::Matcher.new('name'=>'Max','age'=>20)
       
     end
     
     it "should support merging with overlapping attributes" do
       
-      a = Splash::Matcher.new('age'=>{'$lt'=>30})
-      b = Splash::Matcher.new('age'=>20)
+      a = Splash::ActsAsScope::Matcher.new('age'=>{'$lt'=>30})
+      b = Splash::ActsAsScope::Matcher.new('age'=>20)
       
       a_and_b = a.and b
       
-      a_and_b.should == Splash::Matcher.new('age'=>{'$all'=>[20],'$lt'=>30})
+      a_and_b.should == Splash::ActsAsScope::Matcher.new('age'=>{'$all'=>[20],'$lt'=>30})
       
     end
     

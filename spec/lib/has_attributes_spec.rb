@@ -108,6 +108,40 @@ describe Splash::HasAttributes do
     
   end
   
+  it "should support hashes" do
+    
+    class User2
+      
+      include Splash::Document
+      
+      attribute 'comments', Hash.of(User2, String) do
+        
+        default :new
+        
+        persisted_by Hash::Persister.new(type,User2.persister(:by_id_string),String.persister)
+        
+      end
+      
+      
+      
+    end
+    
+    u1 = User2.new.store!
+    u2 = User2.new.store!
+    u3 = User2.new.store!
+    
+    u1.comments[u2] = "nice friend"
+    u1.comments[u3] = "bad guy"
+    u1.store!
+    
+    u1_clone = User2.conditions('_id'=>u1._id).first
+    
+    u1_clone.comments[u2].should == "nice friend"
+    
+    u1_clone.comments[u3].should == "bad guy"
+    
+  end
+  
   describe "defaults" do
     
     it "should support an easy way to create new instances of the given object" do

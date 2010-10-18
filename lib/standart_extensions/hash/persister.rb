@@ -14,7 +14,7 @@ class Hash
     
     def to_saveable(val)
       return nil if val.nil?
-      val.inject({}){|memo,e|
+      val.inject({}){|memo,(key,entry)|
         memo[ @key_persister.to_saveable(key) ] = @entry_persister.to_saveable(entry)
         memo
       }

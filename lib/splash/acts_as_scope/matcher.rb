@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-module Splash
+module Splash::ActsAsScope
   
   class Matcher < Hash
     

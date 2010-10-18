@@ -17,11 +17,12 @@ module Splash::Annotated
     
     def apply_annotations(meth)
       return if @annotations.nil?
-      @annotations.each do |(fn,args,block)|
+      a = @annotations
+      @annotations=[]
+      a.each do |(fn,args,block)|
         args.unshift(meth)
         self.send(fn,*args,&block)
       end
-      @annotations=[]
       return nil
     end
     

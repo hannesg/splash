@@ -1,6 +1,7 @@
 # -*- encoding : utf-8 -*-
 module Splash
-  module QueryInterface
+  
+  module ActsAsScope::QueryInterface
     
     %w(preload nopreload limit conditions fieldmode with_id extend_scoped sort writeback where).each do |fct|
       class_eval <<-CODE, __FILE__,__LINE__

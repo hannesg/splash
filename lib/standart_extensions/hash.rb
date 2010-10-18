@@ -21,13 +21,6 @@ class Hash
     merge!(k,&DEEP_MERGER)
   end
   
-  def to_saveable
-    return self.inject({}) do |h,(k,v)|
-          h[k]=Splash::Saveable.to_saveable(v);
-          h
-      end
-  end
-  
   def only(keys)
     self.reject{|key,val| !keys.include? key}
   end

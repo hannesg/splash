@@ -1,8 +1,6 @@
 # -*- encoding : utf-8 -*-
 class Splash::Attribute
   
-  include Splash::HasConstraint
-  
   NIL_LAMBDA = lambda{ nil }
   
   attr_accessor :persister, :type

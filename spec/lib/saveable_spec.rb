@@ -19,4 +19,30 @@ describe Splash::Saveable do
     
   end
   
+  it "should support documents as hash keys" do
+    
+    class Xyz
+      
+      include Splash::Document
+      
+      attribute "i"
+      
+    end
+    
+    hash = {}
+    
+    (1..10).each do |i|
+      
+      hash[Xyz.new("i"=>i).store!] = i
+      
+    end
+    
+    Xyz.each do |xyz|
+      
+      hash[xyz].should == xyz.i
+      
+    end
+    
+  end
+  
 end

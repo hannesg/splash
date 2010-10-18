@@ -2,11 +2,15 @@
 class Module
   
   def persister
-    @persister || self
+    return self
   end
   
-  def persister=(p)
-    @persister=p
+  def to_saveable(obj)
+    return obj
+  end
+  
+  def from_saveable(obj)
+    return obj
   end
   
   def named?
@@ -60,10 +64,10 @@ def all_#{name.to_s}
   end
   merged_inheritable_attr_info(#{name.inspect})[:merger].call(#{name.to_s},superclass.all_#{name.to_s})
 end
-def each_#{name.to_s}
+def each_#{name.to_s}(&block)
   c=self
   begin
-    yield(c.#{name.to_s})
+    c.#{name.to_s}.each &block
     c=c.superclass
   end while(c.respond_to? #{name.to_sym.inspect})
 end

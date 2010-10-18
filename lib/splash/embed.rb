@@ -20,7 +20,7 @@ module Splash::Embed
   
   include Splash::HasAttributes
   include Splash::Saveable
-  include Splash::Validates
+  #include Splash::Validates
   
   class << self
     def included(base)

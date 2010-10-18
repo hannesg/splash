@@ -17,6 +17,10 @@ module Splash::Document
           return nil
         end
         return found_class.conditions('_id'=>value.object_id).first
+      elsif value.kind_of? BSON::ObjectId
+        return @class.conditions('_id' => value).first
+      elsif value.kind_of? String
+        return @class.conditions('_id' => BSON::ObjectId.from_string(value) ).first
       end
       raise "No idea how to fetch #{value}."
     end
@@ -26,11 +30,33 @@ module Splash::Document
     end
   end
   
+  class ByIdPersister < Persister
+    
+    def to_saveable(value)
+      return nil if value.nil?
+      return value._id
+    end
+    
+  end
+  
+  class ByIdStringPersister < Persister
+    
+    def to_saveable(value)
+      return nil if value.nil?
+      return value._id.to_s
+    end
+    
+  end
+  
   
   include Splash::Saveable
   include Splash::HasAttributes
   include Splash::HasCollection
-  include Splash::Validates
+  include Splash::Callbacks
+  
+  with_callbacks! :store!
+  
+  #include Splash::Validates
   
   class << self
     def included(base)
@@ -52,7 +78,12 @@ module Splash::Document
           super(base)
         end
         
-        def persister
+        def persister(strategy=nil)
+          if strategy == :by_id
+            return Splash::Document::ByIdPersister.new(self.namespace,self)
+          elsif strategy == :by_id_string
+            return Splash::Document::ByIdStringPersister.new(self.namespace,self)
+          end
           Splash::Document::Persister.new(self.namespace,self)
         end
         

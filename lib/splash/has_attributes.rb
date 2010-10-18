@@ -63,13 +63,10 @@ module Splash
       protected
         def complete!
           keys = Set.new
-          @class.each_attributes do |attrs|
-            attrs.each do |k,v|
-              unless keys.include?(k)
-                keys << k
-                self[k]=v.initial_value
-              end
-              
+          @class.each_attributes do |k,v|
+            unless keys.include?(k)
+              keys << k
+              self[k]=v.initial_value
             end
           end
           return self
@@ -141,13 +138,14 @@ CODE
       
       def attribute(name,*args,&block)
         name = name.to_s
-        each_attributes do |attrs|
-          if attrs.key? name
+        self.self_and_superclasses do |klass|
+          break unless klass.respond_to? :attributes
+          if klass.attributes.key? name
             if args.size > 0 || block
               warn "trying to add the existing attribute #{name} of #{self}"
               break
             end
-            return attrs[name]
+            return klass.attributes[name]
           end
         end
         attr=attributes[name]=Splash::Attribute.new(*args, &block)
@@ -159,8 +157,9 @@ CODE
       
       def attribute?(name)
         name = name.to_s
-        each_attributes do |attr|
-          return true if attr.key? name
+        self.self_and_superclasses do |klass|
+          return false unless klass.respond_to? :attributes
+          return true if klass.attribute.key? name
         end
         return false
       end

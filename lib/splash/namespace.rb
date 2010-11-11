@@ -54,6 +54,15 @@ module Splash
       NAMESPACES[:default] = value
     end
     
+    def self.debug
+      begin
+        self.logger.level, old = Logger::DEBUG, self.logger.level
+        yield
+      ensure
+        self.logger.level = old
+      end
+    end
+    
     def class_to_collection_name(klass_name,recheck = true)
       cn = klass_name.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }
       cn.gsub!(/::([A-Z])/){|d| "." + (d[2,1].downcase) }
@@ -177,11 +186,11 @@ module Splash
     def dereference(dbref)
       begin
         klass = self.class_for(dbref.namespace) 
-        return Saveable.load( @db.dereference(dbref), klass)
+        return klass.eigenpersister.from_saveable( @db.dereference(dbref) )
       rescue ClassNotFound => e
         warn e.message
       end
-      return Saveable.load( @db.dereference(dbref) )
+      #return Saveable.load( @db.dereference(dbref) )
       #self.class_for(dbref.namespace).conditions('_id'=>dbref.object_id).first
     end
     

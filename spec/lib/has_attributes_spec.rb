@@ -3,11 +3,39 @@ require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
 describe Splash::HasAttributes do
   
+  it 'should work' do
+    
+    class Tweedledum
+    
+      include Splash::HasAttributes
+    
+      attribute 'size', Float do
+        
+        default{ 13412.234 }
+        
+      end
+    
+    end
+    
+    class Tweedledee
+    
+      include Splash::HasAttributes
+    
+    end
+    
+    Tweedledum.should respond_to(:attribute_size_type)
+    
+    Tweedledee.should_not respond_to(:attribute_size_type)
+    
+    
+  end
+  
+  
   describe "declaration" do
     
     it "should look cool and work" do
       
-      class User
+      class HASUser
         
         include Splash::HasAttributes
         
@@ -16,7 +44,7 @@ describe Splash::HasAttributes do
         attribute 'name'
         
         # simple with type
-        attribute 'friends', Array.of(User)
+        attribute 'friends', Array.of(HASUser)
         
         attribute( 'mails', Array.of(String)) do
           
@@ -24,7 +52,7 @@ describe Splash::HasAttributes do
           
         end
         
-        attribute 'family', Hash.of(String, User) do
+        attribute('family', Hash.of(String, HASUser) ) do
           
           default :new
           
@@ -32,9 +60,7 @@ describe Splash::HasAttributes do
         
       end
       
-      User.attributes.should have(4).items
-      
-      u = User.new
+      u = HASUser.new
       
       u.name.should be_nil
       
@@ -43,7 +69,7 @@ describe Splash::HasAttributes do
       u.mails.should_not be_nil
       u.mails.should be_a(Array.of(String))
       
-      u.family.should be_a(Hash.of(String, User))
+      u.family.should be_a(Hash.of(String, HASUser))
       
     end
     
@@ -114,7 +140,7 @@ describe Splash::HasAttributes do
       
       include Splash::Document
       
-      attribute 'comments', Hash.of(User2, String) do
+      attribute( 'comments', Hash.of(User2, String) )do
         
         default :new
         
@@ -173,7 +199,7 @@ describe Splash::HasAttributes do
       
         include Splash::HasAttributes
         
-        attribute 'zoom', Array do
+        attribute('zoom', Array) do
           
           # a bit counterintuitve ...
           default :new, 4, 2

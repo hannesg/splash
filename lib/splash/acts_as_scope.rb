@@ -63,14 +63,27 @@ module Splash
     
     def each(&block)
       a = block.arity
+      docs = []
+      
+      eigenpersister = self.scope_root.eigenpersister
+      
+      self.clone.scope_cursor.each do |o|
+        docs << eigenpersister.from_saveable(o)
+      end
+      
+      if self.scope_options.includes.any?
+        inc = self.scope_options.includes.sort_by &:length
+        # preload it ...
+        
+      end
+      
       if a == 1
-        self.clone.scope_cursor.each do |o|
-          yield Saveable.load(o,self.scope_root)
+        docs.each do |o|
+          yield o
         end
       elsif a == 2
-        self.clone.scope_cursor.each do |o|
-          l = Saveable.load(o,self.scope_root)
-          yield(l._id,l.value)
+        docs.each do |o|
+          yield(o._id,o.value)
         end
       end
       self
@@ -99,7 +112,7 @@ module Splash
     def next_document
       nd = scope_cursor.next_document
       return nil if nd.nil?
-      return Saveable.load(nd,self.scope_root)
+      return self.scope_root.eigenpersister.from_saveable(nd)
     end
     
     def first
@@ -120,6 +133,14 @@ module Splash
     
     def scope_root?
       false
+    end
+    
+    def +(other_scope)
+    
+    end
+    
+    def -(other_scope)
+    
     end
     
     def <<(object)
@@ -190,9 +211,6 @@ module Splash
       
       def find_options
         selector,options = scope_options.selector,scope_options.options
-        if self.scope_root.kind_of? Splash::Saveable
-          selector["Type"]=self.scope_root.to_s
-        end
         return [selector,options]
       end
       

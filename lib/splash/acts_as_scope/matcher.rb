@@ -7,6 +7,7 @@ module Splash::ActsAsScope
     
     OR = '$or'
     
+    NOT = '$not'
     
     ATOMS = Hash.new do |hash,key|
       hash[key] = lambda{|value,matcher| false}
@@ -122,6 +123,13 @@ module Splash::ActsAsScope
         result[k]=v unless result.key?(k)
       end
       return result
+    end
+    
+    def invert
+      d = self.dup
+      n = d.delete(NOT,Matcher.new)
+      n[NOT]= d
+      return Matcher.cast(n)
     end
     
     def or(other)

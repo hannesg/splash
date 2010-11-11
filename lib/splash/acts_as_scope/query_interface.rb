@@ -3,7 +3,7 @@ module Splash
   
   module ActsAsScope::QueryInterface
     
-    %w(preload nopreload limit conditions fieldmode with_id extend_scoped sort writeback where).each do |fct|
+    %w(preload nopreload limit conditions fieldmode with_id extend_scoped sort writeback where including).each do |fct|
       class_eval <<-CODE, __FILE__,__LINE__
 def #{fct}(*args,&block)
   query(query_#{fct}(*args,&block))
@@ -31,6 +31,10 @@ CODE
           hsh
         }
         return {:fields=>fields}
+      end
+      
+      def query_including(*fields)
+        return {:including=>fields}
       end
       
       def query_limit(limit)

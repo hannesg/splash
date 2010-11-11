@@ -1,10 +1,10 @@
 require 'rubygems'
+require 'bundler'
+Bundler.setup(:development, :default)
+Bundler.require(:development, :default)
 require 'rake'
 require 'rake/gempackagetask'
-gem 'rspec'
-require 'spec/version'
-require 'spec/rake/spectask'
-require 'spec/ruby'
+require 'rspec/core/rake_task'
 
 task :default => [:spec] 
 
@@ -14,6 +14,7 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_tar = true
 end
 
-Spec::Rake::SpecTask.new('spec') do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
+RSpec::Core::RakeTask.new do |t|
+  t.rspec_opts = ["-c", "-f progress", "-r ./spec/helper.rb"]
+  t.pattern = 'spec/**/*_spec.rb'
 end

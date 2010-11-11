@@ -45,8 +45,12 @@ describe "Time" do
         
         include Splash::Document
         
-        attribute "created_at", Splash::CreatedAt
-        attribute "updated_at", Splash::UpdatedAt
+        attribute "created_at", Splash::CreatedAt do
+          default{ Time.now }
+        end
+        attribute "updated_at", Splash::UpdatedAt do
+          default{ Time.now }
+        end
         
       end
       
@@ -67,7 +71,8 @@ describe "Time" do
       tp.x = :y
       
       tp.store!
-      TestPost3.first.created_at.should == date
+      # mongodb only stores milli seconds, not micro seconds
+      TestPost3.first.created_at.should be_close(date,0.001)
     
     end
     

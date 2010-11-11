@@ -17,6 +17,10 @@ class Module
     to_s[0..1]!="#<"
   end
   
+  def eigenclass
+    return (class << self; self; end)
+  end
+  
   def define_annotation(name)
     self.class_eval <<-DEF,__FILE__, __LINE__
 alias_method #{(name.to_s+"!").to_sym.inspect}, #{name.inspect}

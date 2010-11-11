@@ -2,11 +2,11 @@
 require "rubygems"
 require "bundler/setup"
 
-Bundler.require(:default,:testing)
+Bundler.require(:default,:development)
 
 Splash::Namespace.default = Splash::Namespace.new('mongodb://localhost/splash-testing')
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
   config.before(:each) {
     Splash::Namespace.default.clear!
   }

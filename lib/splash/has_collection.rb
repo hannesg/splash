@@ -22,10 +22,6 @@ module Splash
       super
     end
     
-    def find_self
-      self.class.with_id(self._id)
-    end
-    
     def ==(other)
       return ( other.kind_of?(Splash::HasCollection) and !(self.class < other.class).nil? and self._id == other._id )
     end
@@ -42,9 +38,17 @@ module Splash
         obj.store!
       end
       
+      def create_index(*args)
+        self.collection.create_index(*args)
+      end
+      
+      def drop_index(*args)
+        self.collection.drop_index(*args)
+      end
+      
       def store!(object)
         return self.collection.save(
-          Saveable.wrap(object)
+          eigenpersister.to_saveable(object)
         );
       end
       
@@ -58,22 +62,50 @@ module Splash
       def namespace=(arg)
         if arg.kind_of? Splash::Namespace
           @namespace = arg
-          @collection = nil
+          self.collection= nil
         else
           @namespace = Splash::Namespace::NAMESPACES[arg]
-          @collection = nil
+          self.collection = nil
         end
+      end
+      
+      def eigenpersister
+        return self
       end
       
       def collection(*args)
         if args.any?
           self.collection= args.first
         end
-        return (@collection ||= namespace.collection_for(self))
+        if self.respond_to? :_collection
+          return self._collection
+        else
+          return namespace.collection_for(self)
+        end
       end
       
       def collection=(arg)
-        @collection = arg
+        if arg
+          (class << self; method(:define_method); end).call(:_collection){
+            arg
+          }
+        elsif( self.respond_to? :_collection )
+          (class << self; undef_method(:_collection); end)
+        end
+      end
+      
+      def has_own_collection?
+        if self.respond_to?(:_collection) and self.method(:_colletion).owner == self.eigenclass
+          return true
+        end
+        k = self.superclass
+        while( !k.named? )
+          k = k.superclass
+        end
+        if k < Splash::HasCollection
+          return false
+        end
+        return true
       end
       
     end

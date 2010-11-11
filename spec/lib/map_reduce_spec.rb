@@ -178,7 +178,6 @@ JS
         MapReducePicture::Sizes.collection.name.should == "map_reduce_picture.sizes"
         
         MapReducePicture::Sizes.count.should == 2
-        
       end
     
     end

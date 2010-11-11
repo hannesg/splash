@@ -12,7 +12,7 @@ module Splash::ActsAsScope
     end
     
     def initialize(hsh=nil)
-      @options={:query=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil}
+      @options={:query=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil,:including=>[]}
       @options.merge! hsh if hsh
       @options.freeze
     end
@@ -29,12 +29,17 @@ module Splash::ActsAsScope
         :limit => (b[:limit] || a[:limit]),
         :sort => (a[:sort] + (b[:sort] || [])),
         :writeback => Splash::Writeback.merge(a[:writeback],b[:writeback]),
-        :skip => (b[:skip] || a[:skip])
+        :skip => (b[:skip] || a[:skip]),
+        :including => (a[:including] + (b[:including] || []))
       }
     end
     
     def extensions
       @options[:extend_scoped] || []
+    end
+    
+    def includes
+      @options[:including] || []
     end
     
     def to_h

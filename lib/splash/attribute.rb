@@ -1,42 +1,62 @@
 # -*- encoding : utf-8 -*-
 class Splash::Attribute
   
-  NIL_LAMBDA = lambda{ nil }
-  
-  attr_accessor :persister, :type
-  
   def default(fn=nil,*args,&block)
     if block_given?
-      @default_block = block
-    elsif !fn.nil? 
-      @default_block = lambda{ self.send(fn,*args) }
+      set('default'){ block }
+    elsif !fn.nil?
+      set('default'){ lambda{self.send(fn,*args)} }
     else
-      type.instance_eval &@default_block
+      return self.type.instance_eval &(get('default'))
     end
   end
   
-  def initialize(t=Object,&block)
+  def get(key)
+    @class.send("attribute_#{@name}_#{key}")
+  end
+  
+  def set(key,&block)
+    @setter.call("attribute_#{@name}_#{key}",&block)
+  end
+  
+  def initialize(klass,name)
+    @class, @name = klass, name
+    @setter = (class << @class; method(:define_method); end)
+  end
+  
+  def hmmmm(t=Object,&block)
     self.type = t
-    @default_block = NIL_LAMBDA
     instance_eval &block if block_given?
   end
   
   def type= t
-    @persister = t.persister
+    self.persister = t.persister
     @type = t
+    set('type'){ t }
   end
   
-  def persisted_by(p)
-    @persister = p
+  def type
+    @type ||= get('type')
+  end
+  
+  def persister=(t)
+    @persister = t
+    set('persister'){ t }
+  end
+  
+  alias_method :persisted_by, :persister=
+  
+  def persister
+    @persister ||= get('persister')
   end
   
   # persisting interface
-  def read(value)
-    @persister.from_saveable(value)
+  def from_saveable(value)
+    persister.from_saveable(value)
   end
   
-  def write(value)
-    @persister.to_saveable(value)
+  def to_saveable(value)
+    persister.to_saveable(value)
   end
   
   # type interface

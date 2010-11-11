@@ -23,9 +23,6 @@ end
 
 module Splash
   
-  
-  
-  
   autoload_all File.join(File.dirname(__FILE__),'splash')
   
 end

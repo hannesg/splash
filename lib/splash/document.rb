@@ -78,6 +78,24 @@ module Splash::Document
           super(base)
         end
         
+        def inherited(child)
+          if child.named? and !child.has_own_collection?
+            child.conditions!("Type"=>child.to_s)
+          end
+        end
+        
+        def get_class_hierachie(klass)
+          base=[]
+          begin
+            if klass.named?
+              base << klass
+            end
+            #return base unless klass.instance_of? Class
+            klass = klass.superclass
+          end while ( klass < Splash::HasAttributes )
+          return base
+        end
+        
         def persister(strategy=nil)
           if strategy == :by_id
             return Splash::Document::ByIdPersister.new(self.namespace,self)
@@ -85,6 +103,10 @@ module Splash::Document
             return Splash::Document::ByIdStringPersister.new(self.namespace,self)
           end
           Splash::Document::Persister.new(self.namespace,self)
+        end
+        
+        def eigenpersister
+          Splash::Embed::Persister.new(self)
         end
         
         extend_scoped! Splash::ActsAsScope::ArraylikeAccess

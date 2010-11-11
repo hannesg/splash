@@ -20,14 +20,13 @@ describe Splash::Embed do
       
       attribute 'icq', ICQ
       
-      attribute 'friends', Array.of(ICQ) do
+      attribute('friends', Array.of(ICQ)) do
         
         default &:new
         
       end
       
     end
-    
     c = Customer.new( 'icq' => ICQ.new('uin'=>1337) )
     
     c.friends << ICQ.new('uin' => 666)

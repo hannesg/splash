@@ -21,11 +21,11 @@ module Splash
       
       def [](key)
         return super if( self.key? key )
-        t=type(key)
+        #t=type(key)
         if( @raw.key? key )
-          value = t.read(@raw[key])
+          value = @class.attribute_persister(key).from_saveable(@raw[key])
         else
-          value = t.default
+          value = @class.attribute_default(key)
         end
         self.write(key,value)
         return value
@@ -34,7 +34,7 @@ module Splash
       def []=(key,value)
         return if ::NotGiven == value
         key=key.to_s
-        if value.kind_of? type(key).type
+        if value.kind_of? @class.attribute_type(key)
           self.write(key,value)
         elsif Splash::Persister.raw? value
           @raw[key]=value
@@ -63,10 +63,11 @@ module Splash
       protected
         def complete!
           keys = Set.new
-          @class.each_attributes do |k,v|
-            unless keys.include?(k)
-              keys << k
-              self[k]=v.initial_value
+          matcher = /^attribute_([a-z_]+)_default$/
+          @class.methods do |meth|
+            if match = matcher.match(meth.to_s)
+              a = match.to_a
+              self[a[1]]=@class.send(meth)
             end
           end
           return self
@@ -74,7 +75,7 @@ module Splash
         
         def write_back!
           self.each do |key,value|
-            @raw[key]=type(key).write(value)
+            @raw[key]=@class.attribute_persister(key).to_saveable(value)
           end
         end
     end
@@ -82,9 +83,6 @@ module Splash
     class << self
       def included(base)
         base.extend(ClassMethods)
-        base.instance_eval do
-          merged_inheritable_attr :attributes,{}
-        end
       end
     end
     
@@ -138,35 +136,32 @@ CODE
       
       def attribute(name,*args,&block)
         name = name.to_s
-        self.self_and_superclasses do |klass|
-          break unless klass.respond_to? :attributes
-          if klass.attributes.key? name
-            if args.size > 0 || block
-              warn "trying to add the existing attribute #{name} of #{self}"
-              break
-            end
-            return klass.attributes[name]
-          end
-        end
-        attr=attributes[name]=Splash::Attribute.new(*args, &block)
+        attr = Splash::Attribute.new(self,name)
+        attr.hmmmm(*args, &block)
         attribute_accessor(name)
         return attr
       end
       
-      alias def_attribute attribute
+      def attribute_persister(name)
+        a = "attribute_#{name}_persister"
+        return Object unless self.respond_to? a
+        return send(a)
+      end
       
-      def attribute?(name)
-        name = name.to_s
-        self.self_and_superclasses do |klass|
-          return false unless klass.respond_to? :attributes
-          return true if klass.attribute.key? name
-        end
-        return false
+      def attribute_type(name)
+        a = "attribute_#{name}_type"
+        return Object unless self.respond_to? a
+        return send(a)
+      end
+      
+      def attribute_default(name)
+        a = "attribute_#{name}_default"
+        return nil unless self.respond_to?(a)
+        return attribute_type(name).instance_eval &send(a)
       end
       
       def from_raw(data)
         c = self.new()
-        c
         c.attributes.load_raw(data)
         return c
       end

@@ -30,6 +30,10 @@ module Splash::DotNotation
     rest = path
     loop do
       if object.kind_of? Array
+        first,sub_rest = rest.split('.',2)
+        if first =~ /^\d+$/
+          return Splash::DotNotation.get(object[first.to_i],sub_rest)
+        end
         return object.map do |sub|
           Splash::DotNotation.get(sub,rest)
         end
@@ -50,6 +54,10 @@ module Splash::DotNotation
     rest = path
     loop do
       if object.kind_of? Array
+        first,sub_rest = rest.split('.',2)
+        if first =~ /^\d+$/
+          return Splash::DotNotation.set(object[first.to_i],sub_rest,value)
+        end
         return object.map do |sub|
           Splash::DotNotation.set(sub,rest,value)
         end

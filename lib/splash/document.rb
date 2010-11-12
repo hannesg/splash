@@ -68,10 +68,17 @@ module Splash::Document
   include Splash::HasAttributes
   include Splash::HasCollection
   include Splash::Callbacks
+  include Splash::HasConstraints
+  include Splash::DotNotation
+  
+  extend Splash::Constraint::SimpleInterface
   
   with_callbacks! :store!
   
-  #include Splash::Validates
+  def before_store_validate
+    self.raise_unless_valid
+  end
+  
   
   class << self
     def included(base)
@@ -127,6 +134,8 @@ module Splash::Document
         extend_scoped! Splash::ActsAsScope::ArraylikeAccess
         
       end
+    
+      
     end
   end
   

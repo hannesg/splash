@@ -16,6 +16,12 @@
 #
 module Splash::Callbacks
   
+  class Break < StandardError
+  end
+  
+  class Cancel < Break
+  end
+  
   def self.included(base)
     base.extend(ClassMethods)
   end
@@ -23,18 +29,24 @@ module Splash::Callbacks
   protected
   def run_callbacks(name,*args)
     regex = Regexp.new("^#{Regexp.escape name.to_s}_")
-    self.methods.each do |meth|
-      if meth.to_s =~ regex
+    begin
+      self.methods.grep(regex) do |meth|
         self.send(meth,*args)
       end
+    rescue Cancel
+      return false
+    rescue Break
+      return true
     end
+    return true
   end
   
   def with_callbacks(name,*args)
-    run_callbacks('before_' + name.to_s,*args)
-    result = yield
-    run_callbacks('after_' + name.to_s,*args)
-    return result
+    if run_callbacks('before_' + name.to_s,*args)
+      result = yield
+      run_callbacks('after_' + name.to_s,*args)
+      return result
+    end
   end
   
   module ClassMethods
@@ -42,12 +54,14 @@ module Splash::Callbacks
     def with_callbacks(*args)
       args.each do |fn|
         alias_method(fn.to_s + '_without_callbacks',fn)
+        cbname = fn.to_s.gsub('!','')
         self.class_eval <<RB, __FILE__, __LINE__
 def #{fn}(*args)
-  run_callbacks('before_#{fn}')
-  result = super
-  run_callbacks('after_#{fn}')
-  return result
+    if run_callbacks('before_#{cbname}')
+      result = super
+      run_callbacks('after_#{cbname}')
+      return result
+    end
 end
 RB
       end

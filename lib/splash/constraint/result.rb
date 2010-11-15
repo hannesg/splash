@@ -16,45 +16,49 @@
 #
 module Splash
   
-  class Constraint::Result
+  class Constraint::Result < Hash
+    
+    include Splash::DotNotation
     
     attr_reader :errors
     
     def initialize()
-      self.errors = Hash.new do |hsh,key|
-        hsh[key] = []
+      @errors = []
+      super do |hsh,key|
+        hsh[key] = Constraint::Result.new
       end
     end
     
     def valid?
-      errors.all?{|k,v| v.empty?}
+      !errors.any? and self.all?{|k,v| v.valid?}
     end
     
     def error?
       !valid?
     end
     
-    def [](k)
-      self.errors[k]
-    end
-    
-    def []=(k,v)
-      self.errors[k]=v
-    end
-    
-    def kind_of?(x)
-      if x == Hash
-        return true
+    def <<(other)
+      self.errors << other.errors
+      other.each do |key,value|
+        self[key] << value
       end
-      super
+      return self
+    end
+    
+    def inspect
+      '(' + super + ',' + self.errors.inspect+')'
     end
     
     def to_s
-      self.errors.each do |k,errors|
-        errors.each do |error|
-          m << "\t#{error.to_s}\n"
-        end
+      m = ''
+      self.errors.each do |e|
+        m << "\t#{e}\n"
       end
+      self.each do |k,errors|
+        m << "\t" + k.to_s + ":\n"
+        m << errors.to_s.gsub(/^/,"\t")
+      end
+      return m
     end
     
   end

@@ -40,6 +40,9 @@ class Module
     self.class_eval <<-DEF,__FILE__, __LINE__
 alias_method #{(name.to_s+"!").to_sym.inspect}, #{name.inspect}
 def #{name.to_s}(*args,&block)
+  if args.any? and args.first.kind_of? Symbol
+    return #{name.to_s}!(*args,&block)
+  end
   @annotations ||= []
   @annotations << [#{(name.to_s+"!").to_sym.inspect},args,block]
 end

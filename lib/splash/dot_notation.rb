@@ -16,41 +16,109 @@
 #
 module Splash::DotNotation
   
+  DOT = '.'.freeze
+  
+  NUMERIC = /^\d+$/.freeze
+  
+  
+  class Enumerator
+    
+    include Enumerable
+    
+    def initialize(object,path)
+      @object = object
+      @path = path
+    end
+    
+    def each(&block)
+      traverse(@object,[],Splash::DotNotation.parse_path(@path),block)
+    end
+    
+    def traverse(object,history,future,block)
+      if object.kind_of?(Array)
+        if future.first.kind_of?(Numeric)
+          traverse(object[future.first], history +[future.first], future.rest,block)
+        else
+          i = 0
+          for sub in object
+            traverse(sub, history + [i], future, block)
+            i+=1
+          end
+        end
+      elsif future.empty?
+        block.call(history,object)
+      elsif object.kind_of? Hash
+        traverse(object[future.first],history + [future.first], future.rest,block)
+      else
+        traverse(object.send(future.first),history + [future.first], future.rest,block)
+      end
+    end
+    
+  end
+  
   def get(path)
     Splash::DotNotation.get(self,path)
   end
-  
   
   def set(path,value)
     Splash::DotNotation.set(self,path,value)
   end
   
-  def self.get(object,path)
-    return object if path.nil?
-    rest = path
-    loop do
-      if object.kind_of? Array
-        first,sub_rest = rest.split('.',2)
-        if first =~ /^\d+$/
-          return Splash::DotNotation.get(object[first.to_i],sub_rest)
-        end
-        return object.map do |sub|
-          Splash::DotNotation.get(sub,rest)
-        end
-      end
-      first,rest = rest.split('.',2)
-      if object.kind_of? Hash
-        object = object[first]
-      else
-        object = object.send(first)
-      end
-      unless rest
-        return object
-      end
+  def self.parse_path(path)
+    if path.kind_of? Array
+      return path
+    end
+    path.split(DOT).map do |e|
+      e =~ NUMERIC ? e.to_i : e
     end
   end
   
+  def self.get_key(object,key)
+    if object.kind_of? Array
+      if key.kind_of? Numeric
+        return object[key]
+      end
+      return object.map do |sub|
+        get_key(sub,key)
+      end
+    elsif object.kind_of? Hash
+      return object[key]
+    else
+      return object.send(key)
+    end
+  end
+  
+  def self.set_key(object,key,value)
+    if object.kind_of? Array
+      if key.kind_of? Numeric
+        return object[key]=value
+      end
+      return object.map do |sub|
+        set_key(sub,key,value)
+      end
+    elsif object.kind_of? Hash
+      return object[key]=value
+    else
+      return object.send(key+"=",value)
+    end
+  end
+
+  def self.get(object,path)
+    return object if path.nil?
+    parse_path(path).each do |p|
+      object = get_key(object,p)
+    end
+    return object
+  end
+  
   def self.set(object,path,value)
+    return value if path.nil?
+    pp = parse_path(path)
+    last = pp.pop
+    pp.each do |p|
+      object = get_key(object,p)
+    end
+    return set_key(object,last,value)
     rest = path
     loop do
       if object.kind_of? Array

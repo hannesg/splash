@@ -116,6 +116,73 @@ describe Splash::DotNotation do
           ]
       
     end
+    
+    it "should work with arrays and indices" do
+      
+      x = {
+        
+        'a'=> {
+          
+          'b' => [
+            {
+              'c' => 'd'
+            },
+            {
+              'c' => 'D'
+            }
+          ]
+          
+        }
+        
+      }
+      
+      Splash::DotNotation.set(x,'a.b.1.x','y')
+      
+      x['a']['b'].should == [
+            {
+              'c' => 'd'
+            },
+            {
+              'c' => 'D',
+              'x'=>'y'
+            }
+          ]
+      
+    end
+  end
+  
+  describe "enumeration" do
+    
+    it "should work in an easy case" do
+      x = {
+        'a'=> {
+          
+          'b' => [
+            {
+              'c' => 'd'
+            },
+            {
+              'c' => 'D'
+            }
+          ]
+          
+        }
+        
+      }
+      result = []
+      Splash::DotNotation::Enumerator.new(x,'a.b.c').each do |path,obj|
+        if obj == 'd'
+          path.should == ['a','b',0,'c']
+        elsif obj == 'D'
+          path.should == ['a','b',1,'c']
+        else
+          raise "Unexpected object: #{obj.inspect}"
+        end
+        
+      end
+      
+    end
+    
   end
   
 end

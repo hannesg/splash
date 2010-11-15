@@ -26,5 +26,15 @@ module Splash
       end
     end
     
+    def validate_not_nil(name)
+      self.constraints << Constraint::Simple.new{|object,result|
+        if Splash::DotNotation.get(object,name).nil?
+          result[name] << "#{name} may not be nil"
+        end
+      }
+    end
+    define_annotation :validate_not_nil
+    
+    
   end
 end

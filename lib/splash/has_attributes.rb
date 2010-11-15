@@ -19,6 +19,8 @@ module Splash
     
     class Attributes < Hash
       
+      alias_method :orig_key?, :key?
+      alias_method :read, :[]
       alias_method :write, :[]=
       
       def load(raw)
@@ -35,7 +37,7 @@ module Splash
       end
       
       def [](key)
-        return super if( self.key? key )
+        return super if( self.orig_key? key )
         #t=type(key)
         if( @raw.key? key )
           value = @class.attribute_persister(key).from_saveable(@raw[key])
@@ -47,9 +49,11 @@ module Splash
       end
       
       def []=(key,value)
-        return if ::NotGiven == value
         key=key.to_s
-        if value.kind_of? @class.attribute_type(key)
+        if ::NotGiven == value
+          self.write(key,value)
+          @raw[key]=value
+        elsif value.kind_of? @class.attribute_type(key)
           self.write(key,value)
         elsif Splash::Persister.raw? value
           @raw[key]=value
@@ -59,10 +63,15 @@ module Splash
         end
       end
       
+      def key?(key)
+        super and ::NotGiven != self.read(key)
+      end
+      
       def initialize(klass)
         super()
         @class = klass
         @raw = {}
+        #@completed = false
         complete!
       end
       
@@ -149,10 +158,16 @@ def #{name.to_s}=(value) return attributes[#{name.to_s.inspect}] = value end
 CODE
       end
       
+      def attribute_class
+        @attribute_class ||= Class.new(Splash::Attribute)
+      end
+      
       def attribute(name,*args,&block)
         name = name.to_s
-        attr = Splash::Attribute.new(self,name)
-        attr.hmmmm(*args, &block)
+        attr = attribute_class.new(self,name)
+        if args.any? or block_given?
+          attr.make(*args, &block)
+        end
         attribute_accessor(name)
         return attr
       end
@@ -171,14 +186,27 @@ CODE
       
       def attribute_default(name)
         a = "attribute_#{name}_default"
-        return nil unless self.respond_to?(a)
+        return ::NotGiven unless self.respond_to?(a)
         return attribute_type(name).instance_eval &send(a)
       end
       
       def from_raw(data)
-        c = self.new()
+        c = self.new_without_defaults()
         c.attributes.load_raw(data)
         return c
+      end
+      
+      def new_with_defaults(*args,&block)
+        o = self.allocate
+        o.attributes.complete!
+        o.initialize(*args,&block)
+        return o
+      end
+      
+      def new_without_defaults(*args,&block)
+        o = self.allocate
+        o.initialize(*args,&block)
+        return o
       end
       
     end

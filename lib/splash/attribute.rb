@@ -26,6 +26,10 @@ class Splash::Attribute
     end
   end
   
+  def has?(key)
+    @class.respond_to?("attribute_#{@name}_#{key}")
+  end
+  
   def get(key)
     @class.send("attribute_#{@name}_#{key}")
   end
@@ -39,8 +43,10 @@ class Splash::Attribute
     @setter = (class << @class; method(:define_method); end)
   end
   
-  def hmmmm(t=Object,&block)
-    self.type = t
+  def make(t=Object,&block)
+    if !has?('type') or t > Object
+      self.type = t
+    end
     instance_eval &block if block_given?
   end
   

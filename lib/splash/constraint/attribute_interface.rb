@@ -14,26 +14,13 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+require "set"
 module Splash
-  
-  class Constraint::Valid < Constraint
+  module Constraint::AttributeInterface
     
-    class Invalid < StandardError
+    def validate_not_nil
+      @class.validate_not_nil(@name)
     end
     
-    def initialize(key)
-      @key = key
-    end
-    
-    def validate(object,result)
-      DotNotation::Enumerator.new(object,@key).each do |path,sub|
-        if sub.respond_to? :validate
-          sub_result = sub.validate
-          if sub_result.error?
-            DotNotation.get(result,path) << sub_result
-          end
-        end
-      end
-    end
   end
 end

@@ -28,6 +28,7 @@ describe Splash::HasConstraints do
     
     attr_accessor :baz
     
+    validate_not_nil
     attr_accessor :many_baz
     
     validate :foo_may_not_be_bar
@@ -35,7 +36,7 @@ describe Splash::HasConstraints do
     protected
       def foo_may_not_be_bar(result)
         if foo == "bar"
-          result.errors['foo'] << "Foo may not be bar!"
+          result['foo'].errors << "Foo may not be bar!"
         end
       end
   end
@@ -47,7 +48,6 @@ describe Splash::HasConstraints do
     o.foo = "bar"
     
     o.validate.should be_error
-    
     
   end
   
@@ -65,7 +65,7 @@ describe Splash::HasConstraints do
     
     result.should be_error
     
-    result.errors['baz'].should_not be_empty
+    result['baz'].errors.should_not be_empty
     
   end
   
@@ -87,7 +87,7 @@ describe Splash::HasConstraints do
     
     result.should be_error
     
-    result.errors['many_baz'].should_not be_empty
+    result['many_baz'].should_not be_empty
     
   end
   
@@ -99,7 +99,7 @@ describe Splash::HasConstraints do
       
       validate do |object, result|
         if object.age.kind_of? Numeric and object.age < 18
-          result.errors['age'] << 'Du musst volljährig sein!'
+          result['age'].errors << 'Du musst volljährig sein!'
         end
       end
       
@@ -117,7 +117,7 @@ describe Splash::HasConstraints do
     
     result.should be_error
     
-    result.errors['age'].should_not be_empty
+    result['age'].errors.should_not be_empty
     
   end
   

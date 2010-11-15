@@ -26,7 +26,7 @@ module Splash
       end
       
       def wrap(object)
-        object.to_raw.merge("Type"=>Saveable.get_class_hierachie(object.class).map(&:to_s))
+        object.to_raw.reject{|k,v| ::NotGiven == v }.merge("Type"=>Saveable.get_class_hierachie(object.class).map(&:to_s))
       end
       
       def load(keys,klass=Hash)

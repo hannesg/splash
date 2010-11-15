@@ -18,12 +18,12 @@ module Splash::Embed
   
   class Persister
     def to_saveable(value)
-      return nil if value.nil?
+      return value if value.nil?
       return Splash::Saveable.wrap(value)
     end
     
     def from_saveable(value)
-      return nil if value.nil?
+      return value if value.nil?
       return Splash::Saveable.load(value,@base_class)
     end
     

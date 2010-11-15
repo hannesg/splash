@@ -28,6 +28,9 @@ class NotGivenClass
       return (@instance ||= self.new)
     end
   end
+  def nil?
+    true
+  end
 end
 NotGiven = NotGivenClass.instance
 class NotGivenClass

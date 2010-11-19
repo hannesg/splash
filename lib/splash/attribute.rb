@@ -91,7 +91,7 @@ class Splash::Attribute
   
   def initial_value
     return type.initial_value if type && type.respond_to?(:initial_value)
-    ::NotGiven
+    ::NA
   end
   
   def before_write(value)

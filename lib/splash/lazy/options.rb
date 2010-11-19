@@ -14,16 +14,19 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-if defined? Splash
-  raise "Splash included twice!"
-end
-
-Dir[File.join(File.dirname(__FILE__),"/standart_extensions/**/*.rb")].each do |path|
-  require path
-end
-
 module Splash
-  
-  autoload_all File.join(File.dirname(__FILE__),'splash')
-  
+  class Lazy::Options < Hash
+    attr_accessor :path, :value
+    
+    def initialize(path,value)
+      self.path = path
+      self.value = value
+      super()
+    end
+    
+    def inspect
+      "<Lazy::Options path=#{path},value=#{value}>#{super}"
+    end
+    
+  end
 end

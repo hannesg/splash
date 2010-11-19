@@ -183,6 +183,32 @@ describe Splash::DotNotation do
       
     end
     
+    it "map! should work" do
+      x = {
+        'a'=> {
+          
+          'b' => [
+            {
+              'c' => 'd'
+            },
+            {
+              'c' => 'D'
+            }
+          ]
+          
+        }
+        
+      }
+      result = []
+      Splash::DotNotation::Enumerator.new(x,'a.b.c').map! do |path,obj|
+        obj.to_sym
+      end
+      
+      x['a']['b'][0]['c'].should == :d
+      x['a']['b'][1]['c'].should == :D
+      
+    end
+    
   end
   
 end

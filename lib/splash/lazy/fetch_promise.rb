@@ -14,16 +14,34 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-if defined? Splash
-  raise "Splash included twice!"
-end
-
-Dir[File.join(File.dirname(__FILE__),"/standart_extensions/**/*.rb")].each do |path|
-  require path
-end
-
 module Splash
-  
-  autoload_all File.join(File.dirname(__FILE__),'splash')
-  
+  class Lazy::FetchPromise < ::Lazy::Promise
+    
+    class ObjectGone < StandardError
+    end
+    
+    def initialize(model,id,path, options = {})
+      @model, @id, @path, @options = model, id , path, options
+      super()
+    end
+    
+    def __result__
+      r = @model.collection.find({"_id"=>@id},{:fields=>{@path=>1}})
+      if r.has_next?
+        d = r.next_document
+        @result = DotNotation.get(d,@path)
+        if @result.available?
+          Splash::Lazy.insert(@model,@id,@result,@options)
+        end
+      else
+        @result = NA
+      end
+      return @result
+    end
+    
+    def inspect
+      "<Lazy::FetchPromise: #{@path}>"
+    end
+    
+  end
 end

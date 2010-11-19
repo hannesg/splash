@@ -83,13 +83,12 @@ module Splash
       eigenpersister = self.scope_root.eigenpersister
       
       self.clone.scope_cursor.each do |o|
-        docs << eigenpersister.from_saveable(o)
+        docs << eigenpersister.from_saveable(insert_laziness(o))
       end
       
       if self.scope_options.includes.any?
         inc = self.scope_options.includes.sort_by &:length
         # preload it ...
-        
       end
       
       if a == 1
@@ -127,7 +126,7 @@ module Splash
     def next_document
       nd = scope_cursor.next_document
       return nil if nd.nil?
-      return self.scope_root.eigenpersister.from_saveable(nd)
+      return self.scope_root.eigenpersister.from_saveable(insert_laziness(nd))
     end
     
     def first
@@ -203,6 +202,22 @@ module Splash
     end
 
     protected
+      def insert_laziness(document)
+=begin
+        if( scope_options.fieldmode == :exclude )
+          # only implented for exclude mode
+          fields = scope_options.fields
+          result = {}
+          keys = fields.keys.sort_by &:length
+          
+          
+          
+        else
+          #raise "you should not be that lazy!"
+        end
+=end
+        return Splash::Lazy.insert(self.scope_root,document['_id'],document,self.scope_options.fields)
+      end
       
       def scope_cursor()
         @scope_cursor ||= find!

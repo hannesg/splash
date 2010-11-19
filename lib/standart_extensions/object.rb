@@ -16,6 +16,13 @@
 #
 class Object
   
-  # most object can persist themself
+  
+  def given?
+    available? && !nil?
+  end
+  
+  def available?
+    NA != self
+  end
   
 end

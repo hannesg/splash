@@ -29,12 +29,10 @@ class Module
   end
   
   def named?
-    to_s[0..1]!="#<"
+    !anonymous?
   end
   
-  def eigenclass
-    return (class << self; self; end)
-  end
+  alias_method :eigenclass, :extension
   
   def define_annotation(name)
     self.class_eval <<-DEF,__FILE__, __LINE__

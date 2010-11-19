@@ -27,7 +27,7 @@ module Splash::ActsAsScope
     end
     
     def initialize(hsh=nil)
-      @options={:query=>nil,:fieldmode=>:exclude,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil,:including=>[]}
+      @options={:query=>nil,:fieldmode=>nil,:extend_scoped=>[],:limit=>nil,:sort=>[],:writeback=>nil,:skip=>nil,:including=>[],:fields=>{}}
       @options.merge! hsh if hsh
       @options.freeze
     end
@@ -39,6 +39,7 @@ module Splash::ActsAsScope
     def self.merge_options(a,b)
       return {
         :query => Matcher.and(a[:query],b[:query]),
+        :fields => (b[:fields] ? (a[:fields] + b[:fields]) : a[:fields]),
         :fieldmode => (b[:fieldmode] || a[:fieldmode]),
         :extend_scoped => (a[:extend_scoped] + (b[:extend_scoped] || [])),
         :limit => (b[:limit] || a[:limit]),
@@ -57,6 +58,14 @@ module Splash::ActsAsScope
       @options[:including] || []
     end
     
+    def fieldmode
+      @options[:fieldmode] || :exclude
+    end
+    
+    def fields
+      @options[:fields] || {}
+    end
+    
     def to_h
       @options
     end
@@ -73,7 +82,7 @@ module Splash::ActsAsScope
     end
     
     def options
-      opt=@options.reject{|key,value| !(OPTION_KEYS.include? key)}
+      opt=@options.slice(*OPTION_KEYS)
       if opt.key? :fields
         if @options[:fieldmode]==:eager
           opt.delete :fields
@@ -82,6 +91,9 @@ module Splash::ActsAsScope
           opt[:fields]=opt[:fields].reject{|key,value|
             value == fieldmode
           }
+          if opt[:fields].none?
+            opt.delete :fields
+          end
         end
         
       end

@@ -23,7 +23,7 @@ module Splash
     
     def map_reduce(map=nil,reduce=nil,opts={},&block)
       if MAP_REDUCE_QUERY_KEYS.any?{|k| opts.key? k }
-        return self.query(opts.only(MAP_REDUCE_QUERY_KEYS)).map_reduce(map,reduce,opts.except(MAP_REDUCE_QUERY_KEYS))
+        return self.query(opts.slice(*MAP_REDUCE_QUERY_KEYS)).map_reduce(map,reduce,opts.except(*MAP_REDUCE_QUERY_KEYS))
       end
         
       if( opts[:out] || opts[:keeptemp] )

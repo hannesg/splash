@@ -17,30 +17,29 @@
 module Splash
   module HasAttributes
     
-    class Attributes < Hash
+    class Attributes < BSON::OrderedHash
       
-      alias_method :orig_key?, :key?
       alias_method :read, :[]
       alias_method :write, :[]=
       
-      def load(raw)
-        raw.each do |key,value|
+      def load(attrs)
+        attrs.each do |key,value|
           self[key]=value
         end
       end
       
+      # this is a brain transplantation!
       def load_raw(raw)
-        raw.keys.each do |k|
-          self.delete k
-        end
-        @raw.update(raw)
+        flush!
+        @raw = raw
       end
       
       def [](key)
-        return super if( self.orig_key? key )
+        return nil if( @not_given.include? key )
+        return super if( self.key? key )
         #t=type(key)
         if( @raw.key? key )
-          value = @class.attribute_persister(key).from_saveable(@raw[key])
+          value = @class.attribute_persister(key).from_saveable(demand(@raw[key]))
         else
           value = @class.attribute_default(key)
         end
@@ -49,13 +48,15 @@ module Splash
       end
       
       def []=(key,value)
-        key=key.to_s
-        if ::NotGiven == value
-          self.write(key,value)
-          @raw[key]=value
+        if ::NA == value
+          @not_given << key
+          self.delete(key)
+          @raw.delete(key)
         elsif value.kind_of? @class.attribute_type(key)
+          @not_given.delete(key)
           self.write(key,value)
         elsif Splash::Persister.raw? value
+          @not_given.delete(key)
           @raw[key]=value
           self.delete(key)
         else
@@ -63,16 +64,12 @@ module Splash
         end
       end
       
-      def key?(key)
-        super and ::NotGiven != self.read(key)
-      end
-      
       def initialize(klass)
         super()
         @class = klass
         @raw = {}
-        #@completed = false
-        complete!
+        @not_given = Set.new
+        #complete!
       end
       
       def raw
@@ -91,13 +88,21 @@ module Splash
           @class.methods do |meth|
             if match = matcher.match(meth.to_s)
               a = match.to_a
-              self[a[1]]=@class.send(meth)
+              unless @not_given.include?(a[1]) or self.key?(a[1])
+                self[a[1]]=@class.send(meth)
+              end
             end
           end
           return self
         end
         
+        def flush!
+          self.replace({})
+          @not_given = Set.new
+        end
+        
         def write_back!
+          #complete!
           self.each do |key,value|
             @raw[key]=@class.attribute_persister(key).to_saveable(value)
           end
@@ -186,14 +191,15 @@ CODE
       
       def attribute_default(name)
         a = "attribute_#{name}_default"
-        return ::NotGiven unless self.respond_to?(a)
+        return ::NA unless self.respond_to?(a)
         return attribute_type(name).instance_eval &send(a)
       end
       
-      def from_raw(data)
-        c = self.new_without_defaults()
-        c.attributes.load_raw(data)
-        return c
+      def from_raw(data,*args,&block)
+        o = self.allocate
+        o.attributes.load_raw(data)
+        o.initialize(*args,&block)
+        return o
       end
       
       def new_with_defaults(*args,&block)

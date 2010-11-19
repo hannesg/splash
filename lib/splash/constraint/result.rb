@@ -29,6 +29,12 @@ module Splash
       end
     end
     
+    def key?(k)
+      # we pretend to have any key, because
+      # we will create any key on access
+      true
+    end
+    
     def valid?
       !errors.any? and self.all?{|k,v| v.valid?}
     end

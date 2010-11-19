@@ -77,9 +77,9 @@ describe Splash::HasAttributes do
       
       u = HASUser.new
       
-      u.name.should be_nil
+      u.name.should_not be_given
       
-      u.friends.should be_nil
+      u.friends.should_not be_given
       
       u.mails.should_not be_nil
       u.mails.should be_a(Array.of(String))

@@ -131,7 +131,7 @@ module Splash
     def refresh!
       result = map_reduce_callback.call(map,reduce,self.map_reduce_options)
       self.collection = self.namespace.collection(result["result"])
-      return result.except(["result","ok"])
+      return result.except("result","ok")
     end
     
     

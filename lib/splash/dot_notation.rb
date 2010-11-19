@@ -31,26 +31,58 @@ module Splash::DotNotation
     end
     
     def each(&block)
-      traverse(@object,[],Splash::DotNotation.parse_path(@path),block)
+      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,false)
     end
     
-    def traverse(object,history,future,block)
+    def map!(&block)
+      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,true)
+    end
+    
+    def final(object,history,key,block,set)
+      if object.kind_of? Hash
+        o = object[key]
+      else
+        o = object.send(key)
+      end
+      if o.kind_of? Array
+        return traverse(o,history + [key],[],block,set)
+      end
+      value = block.call(history + [key],o)
+      if set
+        if object.kind_of? Hash
+          object[key] = value
+        else
+          object.send(key+'=',value)
+        end
+      end
+      return value
+    end
+    
+    def traverse(object,history,future,block,set=false)
       if object.kind_of?(Array)
         if future.first.kind_of?(Numeric)
-          traverse(object[future.first], history +[future.first], future.rest,block)
+          if future.one?
+            value = block.call(history + [future.first], object[future.first])
+            if set
+              object[future.first] = value
+            end
+            return value;
+          end
+          traverse(object[future.first], history +[future.first], future.rest,block, set)
         else
           i = 0
-          for sub in object
-            traverse(sub, history + [i], future, block)
+          l = object.length
+          while i < l
+            traverse(object, history , [i] + future, block, set)
             i+=1
           end
         end
-      elsif future.empty?
-        block.call(history,object)
+      elsif future.one?
+        return final(object,history,future.first,block,set)
       elsif object.kind_of? Hash
-        traverse(object[future.first],history + [future.first], future.rest,block)
+        traverse(object[future.first],history + [future.first], future.rest,block, set)
       else
-        traverse(object.send(future.first),history + [future.first], future.rest,block)
+        traverse(object.send(future.first),history + [future.first], future.rest,block, set)
       end
     end
     
@@ -74,6 +106,9 @@ module Splash::DotNotation
   end
   
   def self.get_key(object,key)
+    #if !object.available?
+    #  return object
+    #els
     if object.kind_of? Array
       if key.kind_of? Numeric
         return object[key]
@@ -82,8 +117,11 @@ module Splash::DotNotation
         get_key(sub,key)
       end
     elsif object.kind_of? Hash
+      return NA unless object.key? key
       return object[key]
     else
+      return NA if key.kind_of? Numeric
+      return NA unless object.respond_to? key
       return object.send(key)
     end
   end

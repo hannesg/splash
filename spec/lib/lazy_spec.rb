@@ -51,13 +51,35 @@ describe Splash::Lazy do
     
   end
   
-  it "should generate correct options" do
+  it "should fetch a given key" do
     
-    fields = {'key.child.child'=>1,'other_key'=>0,'another_key'=>1,'another_key.child'=>0}
+    class LazyTestHash2 < Hash
+      
+      include Splash::HasCollection
+      
+      def _id
+        self["_id"]
+      end
+      
+      def _id=(value)
+        self["_id"]=value
+      end
+      
+    end
     
-    o = Splash::Lazy::Hash.build_lazy_options(fields)
+    lh = LazyTestHash2.new
     
-    puts o.inspect
+    lh["key"] = "value"
+    
+    lh.store!
+    
+    pr1 = {}
+    pr1.extend(Splash::Lazy::Hash::Exclusive)
+    pr1.initialize_laziness(LazyTestHash2,lh._id,'')
+    pr1.lazify('key')
+    pr1.lazify('nakey')
+    pr1['key'].should == "value"
+    pr1['nakey'].should_not be_given
     
   end
   
@@ -91,6 +113,8 @@ describe Splash::Lazy do
       
       include Splash::Document
       
+      lazy!('child.y')
+      
     end
     
     h1 = LazyTestDocument2.new("child"=>{"x"=>1,"y"=>1}).store!
@@ -98,14 +122,16 @@ describe Splash::Lazy do
     h3 = LazyTestDocument2.new("child"=>{"x"=>3,"y"=>9}).store!
     h4 = LazyTestDocument2.new("child"=>{"x"=>4,"y"=>16}).store!
     
-    q = LazyTestDocument2.lazy('child.y')
-    
-    puts q.send(:scope_options).inspect
-    
     Splash::Namespace.debug do
-      q.each do |h|
+      
+      LazyTestDocument2.each do |h|
         h.child["y"].should == h.child["x"]**2
       end
+      
+      LazyTestDocument2.eager('child.y').each do |h|
+        h.child["y"].should == h.child["x"]**2
+      end
+      
     end
   end
   

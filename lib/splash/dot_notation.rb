@@ -77,6 +77,11 @@ module Splash::DotNotation
             i+=1
           end
         end
+      elsif future.none?
+        if set
+          raise "Can't set this!"
+        end
+        block.call(history,object)
       elsif future.one?
         return final(object,history,future.first,block,set)
       elsif object.kind_of? Hash
@@ -86,6 +91,21 @@ module Splash::DotNotation
       end
     end
     
+  end
+  
+  def sub(path,start_or_range,length=-1)
+    
+  end
+  
+  def self.join(path,sub)
+    return sub if path.empty?
+    return path + '.' + sub
+  end
+  
+  def self.pop(path)
+    ld = path.rindex(DOT)
+    return '',path if ld.nil?
+    return path[0...ld], path[(ld+1)..-1]
   end
   
   def get(path)
@@ -99,6 +119,9 @@ module Splash::DotNotation
   def self.parse_path(path)
     if path.kind_of? Array
       return path
+    end
+    if path == ''
+      return []
     end
     path.split(DOT).map do |e|
       e =~ NUMERIC ? e.to_i : e

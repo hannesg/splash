@@ -42,9 +42,9 @@ module Splash
     def self.insert(model,id,document,fields)
       options = self.build_lazy_options(fields)
       options.each do |key,value|
-        puts value.inspect
+        #puts value.inspect
         DotNotation::Enumerator.new(document,key).map! do |path,old|
-          puts "path lazied: #{path} (was: #{old.inspect})"
+          #puts "path lazied: #{path} (was: #{old.inspect})"
           Lazy::FetchPromise.new(model,id,path.join('.'),value)
         end
       end

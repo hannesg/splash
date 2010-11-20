@@ -216,7 +216,7 @@ module Splash
           #raise "you should not be that lazy!"
         end
 =end
-        return Splash::Lazy.insert(self.scope_root,document['_id'],document,self.scope_options.fields)
+        return Splash::Lazy::Hash.insert(self.scope_root,document['_id'],document,self.scope_options.fields)
       end
       
       def scope_cursor()

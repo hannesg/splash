@@ -73,20 +73,30 @@ describe Splash::Lazy do
         h.y.should == h.x**2
       end
     end
-    
-    
   end
   
-  describe "options" do
+  it "should support lazy on deeper nested fields" do
     
-    o = Splash::Lazy.build_lazy_options('key'=>0,'key.child'=>0,'key.child.child'=>0,'other_key'=>0)
+    class LazyTestDocument2
+      
+      include Splash::Document
+      
+    end
     
-    puts o.inspect
+    h1 = LazyTestDocument2.new("child"=>{"x"=>1,"y"=>1}).store!
+    h2 = LazyTestDocument2.new("child"=>{"x"=>2,"y"=>4}).store!
+    h3 = LazyTestDocument2.new("child"=>{"x"=>3,"y"=>9}).store!
+    h4 = LazyTestDocument2.new("child"=>{"x"=>4,"y"=>16}).store!
     
-    r = Splash::Lazy.insert(nil,1,{},o)
+    q = LazyTestDocument2.lazy('child.y')
     
-    puts r.inspect
+    puts q.send(:scope_options).inspect
     
+    Splash::Namespace.debug do
+      q.each do |h|
+        h.child["y"].should == h.child["x"]**2
+      end
+    end
   end
   
   

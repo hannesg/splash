@@ -51,6 +51,16 @@ describe Splash::Lazy do
     
   end
   
+  it "should generate correct options" do
+    
+    fields = {'key.child.child'=>1,'other_key'=>0,'another_key'=>1,'another_key.child'=>0}
+    
+    o = Splash::Lazy::Hash.build_lazy_options(fields)
+    
+    puts o.inspect
+    
+  end
+  
   it "should support lazy loading" do
     
     class LazyTestDocument1

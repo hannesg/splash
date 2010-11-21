@@ -35,7 +35,6 @@ module Splash
       end
       
       def [](key)
-        return nil if( @not_given.include? key )
         return super if( self.key? key )
         #t=type(key)
         if( @raw.key? key )
@@ -49,18 +48,9 @@ module Splash
       
       def []=(key,value)
         if ::NA == value
-          @not_given << key
-          self.delete(key)
-          @raw.delete(key)
-        elsif value.kind_of? @class.attribute_type(key)
-          @not_given.delete(key)
-          self.write(key,value)
-        elsif Splash::Persister.raw? value
-          @not_given.delete(key)
-          @raw[key]=value
           self.delete(key)
         else
-          raise "Don't know what to do with #{key}= #{value.inspect}"
+          self.write(key,value)
         end
       end
       
@@ -68,7 +58,6 @@ module Splash
         super()
         @class = klass
         @raw = {}
-        @not_given = Set.new
         #complete!
       end
       
@@ -98,7 +87,6 @@ module Splash
         
         def flush!
           self.replace({})
-          @not_given = Set.new
         end
         
         def write_back!

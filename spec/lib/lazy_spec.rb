@@ -98,12 +98,8 @@ describe Splash::Lazy do
     
     q = LazyTestDocument1.lazy('y')
     
-    puts q.send(:scope_options).inspect
-    
-    Splash::Namespace.debug do
-      q.each do |h|
-        h.y.should == h.x**2
-      end
+    q.each do |h|
+      h.y.should == h.x**2
     end
   end
   
@@ -122,17 +118,14 @@ describe Splash::Lazy do
     h3 = LazyTestDocument2.new("child"=>{"x"=>3,"y"=>9}).store!
     h4 = LazyTestDocument2.new("child"=>{"x"=>4,"y"=>16}).store!
     
-    Splash::Namespace.debug do
-      
-      LazyTestDocument2.each do |h|
-        h.child["y"].should == h.child["x"]**2
-      end
-      
-      LazyTestDocument2.eager('child.y').each do |h|
-        h.child["y"].should == h.child["x"]**2
-      end
-      
+    LazyTestDocument2.each do |h|
+      h.child["y"].should == h.child["x"]**2
     end
+      
+    LazyTestDocument2.eager('child.y').each do |h|
+      h.child["y"].should == h.child["x"]**2
+    end
+    
   end
   
   

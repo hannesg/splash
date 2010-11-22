@@ -37,17 +37,9 @@ module Splash::Embed
   include Splash::Saveable
   #include Splash::Validates
   
+  extend Concerned
+  
   class << self
-    def included(base)
-      base.extend(ClassMethods)
-      included_modules.each do |mod|
-        begin
-          mod.included(base)
-        rescue NoMethodError
-        end
-      end
-    end
-    
     def define(&block)
       c=Class.new()
       mod = self
@@ -55,7 +47,7 @@ module Splash::Embed
         include mod
       end
       c.class_eval(&block)
-      c
+      return c
     end
     
     def persister

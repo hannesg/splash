@@ -27,6 +27,8 @@ module Splash
       
     }].freeze
     
+    extend Concerned
+    
     module ClassMethods
       
       def from_callback(callback,map,reduce,options,&block)
@@ -96,7 +98,7 @@ module Splash
     module Temporary
       
       include Splash::MapReduce
-      extend Splash::MapReduce::ClassMethods
+      #extend Splash::MapReduce::ClassMethods
       
       def collection
         refresh!
@@ -116,7 +118,7 @@ module Splash
     module Permanent
       
       include Splash::MapReduce
-      extend Splash::MapReduce::ClassMethods
+      #extend Splash::MapReduce::ClassMethods
       
       def map_reduce_options
         options = map_reduce_base_options.dup

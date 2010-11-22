@@ -30,34 +30,47 @@ module Splash
       
       # this is a brain transplantation!
       def load_raw(raw)
-        flush!
-        @raw = raw
+        #@sync.synchronize(Sync::EX){
+          flush!
+          @raw = raw
+        #}
       end
       
       def [](key)
-        return super if( self.key? key )
-        #t=type(key)
-        if( @raw.key? key )
-          value = @class.attribute_persister(key).from_saveable(demand(@raw[key]))
-        else
-          value = @class.attribute_default(key)
-        end
-        self.write(key,value)
-        return value
+        #@sync.synchronize(Sync::SH){
+          return super if( self.key? key )
+          #@sync.synchronize(Sync::EX){
+            return super if( self.key? key )
+            if( @raw.key? key )
+              value = @class.attribute_persister(key).from_saveable(@raw[key])
+            else
+              value = @class.attribute_default(key)
+            end
+            if ::NA == value
+              self.delete(key)
+            else
+              self.write(key,value)
+            end
+            return value
+          #}
+        #}
       end
       
       def []=(key,value)
-        if ::NA == value
-          self.delete(key)
-        else
-          self.write(key,value)
-        end
+        #@sync.synchronize(Sync::EX){
+          if ::NA == value
+            self.delete(key)
+          else
+            self.write(key,value)
+          end
+        #}
       end
       
       def initialize(klass)
         super()
         @class = klass
         @raw = {}
+        @sync = Sync::Dummy.new
         #complete!
       end
       
@@ -68,6 +81,12 @@ module Splash
       
       def type(key)
         return @class.attribute(key)
+      end
+      
+      def each
+        @sync.synchronize(Sync::SH){
+          super
+        }
       end
       
       protected
@@ -90,18 +109,13 @@ module Splash
         end
         
         def write_back!
-          #complete!
           self.each do |key,value|
             @raw[key]=@class.attribute_persister(key).to_saveable(value)
           end
         end
     end
     
-    class << self
-      def included(base)
-        base.extend(ClassMethods)
-      end
-    end
+    extend Concerned
     
     def attributes
       @attributes ||= Attributes.new(self.class)

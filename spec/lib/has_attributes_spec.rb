@@ -248,4 +248,41 @@ describe Splash::HasAttributes do
     
   end
   
+  describe 'threading' do
+  
+    it 'could maybe work' do
+      
+      class ThreadedObject1
+      
+        def initialize
+          Thread.pass
+          sleep(rand()*1000)
+          Thread.pass
+        end
+      end
+      
+      class ThreadedDocument1
+      
+        include Splash::HasAttributes
+        
+        attribute 'object', ThreadedObject1 do
+          default :new
+        end
+        
+      end
+      
+      ThreadedObject1.should_receive(:new).exactly(100).times
+      
+      a = (1..100).map do ThreadedDocument1.new end
+      threads = []
+      100.times do
+        threads << Thread.new {
+          a.each &:object
+        }
+      end
+      threads.each &:join
+      
+    end
+  end
+  
 end

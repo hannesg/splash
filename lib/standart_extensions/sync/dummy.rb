@@ -14,41 +14,23 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require File.join(File.dirname(__FILE__),"/../concerned.rb")
-class Array
+require "sync.rb"
+# This is a dummy, which will simply do nothing, but works exactly
+# like sync. You can use it as a replacement for every Sync when
+# you have no need for thread safety.
+class Sync
   
-  module WithKnowledgeOfEntries
-    
-    def kind_of?(other)
-      if other < Array::WithKnowledgeOfEntries
-        return true if self.class.entry_class <= other.entry_class
-        return self.all? do |entry| entry.kind_of? other.entry_class end
-      end
-      super
+  class Dummy < self
+  
+    def sync_lock(mode=EX)
+      return unlock if mode == UN
+      @__sync_locked = true
     end
     
-    extend ::Concerned
-    
-    module ClassMethods
-    
-      attr_reader :entry_class
-    
-      def persister
-        Array::Persister.new(self,self.entry_class.persister)
-      end
-    
+    def sync_unlock(mode=EX)
+      @__sync_locked = false
     end
     
-  end
-  
-  def self.of(klass)
-    Class.new(self){
-      
-      @entry_class = klass
-      
-      include WithKnowledgeOfEntries
-      
-    }
   end
   
 end

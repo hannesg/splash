@@ -36,21 +36,23 @@ describe Splash::HasCollection do
   
   it "should be usable bare" do
     
-    pending( "not fully developed yet" )
-    
     class HashWithCollection < Hash
       
       include Splash::HasCollection
+      
+      def _id
+        self["_id"]
+      end
+      
+      def _id=(value)
+        self["_id"]=value
+      end
       
     end
     
     h = HashWithCollection['xy',123]
     
     h.store!
-    
-    #HashWithCollection.find
-    
-    
     
   end
   

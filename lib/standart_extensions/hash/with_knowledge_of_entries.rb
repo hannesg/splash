@@ -14,6 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+require File.join(File.dirname(__FILE__),"/../concerned.rb")
 class Hash
   module WithKnowledgeOfEntries
     
@@ -24,6 +25,8 @@ class Hash
       end
       super
     end
+    
+    extend ::Concerned
     
     module ClassMethods
     
@@ -44,7 +47,6 @@ class Hash
       @entry_class = entry_klass
       
       include WithKnowledgeOfEntries
-      extend WithKnowledgeOfEntries::ClassMethods
       
     }
   end

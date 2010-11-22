@@ -14,41 +14,30 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require File.join(File.dirname(__FILE__),"/../concerned.rb")
-class Array
+module Concerned
   
-  module WithKnowledgeOfEntries
-    
-    def kind_of?(other)
-      if other < Array::WithKnowledgeOfEntries
-        return true if self.class.entry_class <= other.entry_class
-        return self.all? do |entry| entry.kind_of? other.entry_class end
+  def included(base=nil,&block)
+    if base
+      self.included_modules.each do |mod|
+        begin
+          mod.included(base)
+        rescue NoMethodError
+        end
+      end
+      #if base.kind_of? Class
+        if self.const_defined?('ClassMethods')
+          base.extend(self.const_get('ClassMethods'))
+        end
+      #else
+        
+      #end
+      if @concerned_block
+        base.instance_eval( &@concerned_block )
       end
       super
+    elsif block_given?
+      @concerned_block = block
     end
-    
-    extend ::Concerned
-    
-    module ClassMethods
-    
-      attr_reader :entry_class
-    
-      def persister
-        Array::Persister.new(self,self.entry_class.persister)
-      end
-    
-    end
-    
-  end
-  
-  def self.of(klass)
-    Class.new(self){
-      
-      @entry_class = klass
-      
-      include WithKnowledgeOfEntries
-      
-    }
   end
   
 end

@@ -73,9 +73,9 @@ describe Splash::Lazy do
     
     lh.store!
     
-    pr1 = {}
+    pr1 = BSON::OrderedHash.new
     pr1.extend(Splash::Lazy::Hash::Exclusive)
-    pr1.initialize_laziness(LazyTestHash2,lh._id,'')
+    pr1.initialize_laziness(LazyTestHash2.collection,lh._id,'')
     pr1.lazify('key')
     pr1.lazify('nakey')
     pr1['key'].should == "value"

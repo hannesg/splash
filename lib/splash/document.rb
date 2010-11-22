@@ -79,7 +79,13 @@ module Splash::Document
     self.raise_unless_valid
   end
   
+  extend Concerned
   
+  included do
+    extend Splash::ActsAsScopeRoot
+    extend_scoped! Splash::ActsAsScope::ArraylikeAccess
+  end
+=begin
   class << self
     def included(base)
       
@@ -92,51 +98,53 @@ module Splash::Document
       
       super(base)
       
+      base.extend(ClassMethods)
+      
       base.instance_eval do
         extend Splash::ActsAsScopeRoot
-        
-        def included(base)
-          Splash::Document.included(base)
-          super(base)
-        end
-        
-        def inherited(child)
-          if child.named? and !child.has_own_collection?
-            child.conditions!("Type"=>child.to_s)
-          end
-        end
-        
-        def get_class_hierachie(klass)
-          base=[]
-          begin
-            if klass.named?
-              base << klass
-            end
-            #return base unless klass.instance_of? Class
-            klass = klass.superclass
-          end while ( klass < Splash::HasAttributes )
-          return base
-        end
-        
-        def persister(strategy=nil)
-          if strategy == :by_id
-            return Splash::Document::ByIdPersister.new(self.namespace,self)
-          elsif strategy == :by_id_string
-            return Splash::Document::ByIdStringPersister.new(self.namespace,self)
-          end
-          Splash::Document::Persister.new(self.namespace,self)
-        end
-        
-        def eigenpersister
-          Splash::Embed::Persister.new(self)
-        end
-        
         extend_scoped! Splash::ActsAsScope::ArraylikeAccess
-        
       end
-    
-      
     end
+  end
+=end
+  module ClassMethods
+    
+    def included(base)
+      Splash::Document.included(base)
+      super(base)
+    end
+    
+    def inherited(child)
+      if child.named? and !child.has_own_collection?
+        child.conditions!("Type"=>child.to_s)
+      end
+    end
+    
+    def get_class_hierachie(klass)
+      base=[]
+      begin
+        if klass.named?
+          base << klass
+        end
+        #return base unless klass.instance_of? Class
+        klass = klass.superclass
+      end while ( klass < Splash::HasAttributes )
+      return base
+    end
+    
+    def persister(strategy=nil)
+      if strategy == :by_id
+        return Splash::Document::ByIdPersister.new(self.namespace,self)
+      elsif strategy == :by_id_string
+        return Splash::Document::ByIdStringPersister.new(self.namespace,self)
+      end
+      Splash::Document::Persister.new(self.namespace,self)
+    end
+    
+    def eigenpersister
+      Splash::Embed::Persister.new(self)
+    end
+    
   end
   
 end

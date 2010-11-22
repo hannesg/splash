@@ -20,7 +20,11 @@ module Splash
     
     HIS_ROYAL_LAZINESS = ArgumentError.new
     
-    class Hash < Hash
+    def HIS_ROYAL_LAZINESS.inspect
+      return "<His royal laziness>"
+    end
+    
+    module Hash #< Hash
     
       # In the exclusive model, you decide explicitly, which keys are
       # lazy. All others aren't!
@@ -28,7 +32,7 @@ module Splash
         
         def self.extended(base)
           base.instance_eval do
-            @lazy_model = nil
+            @lazy_collection = nil
             @lazy_id = nil
             @lazy_path = nil
             @lazy_fields = nil
@@ -62,8 +66,8 @@ module Splash
           self[field,false] == HIS_ROYAL_LAZINESS 
         end
         
-        def initialize_laziness(model,id,path)
-          @lazy_model, @lazy_id, @lazy_path = model, id, path
+        def initialize_laziness(collection,id,path)
+          @lazy_collection, @lazy_id, @lazy_path = collection, id, path
           return self
         end
         
@@ -92,7 +96,7 @@ module Splash
               }
             end
 =end
-            docs = @lazy_model.collection.find({"_id"=>@lazy_id},{:fields=>(fields)})
+            docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>(fields)})
             if docs.has_next?
               doc = docs.next_document
               result = DotNotation.get(doc,@lazy_path)
@@ -113,7 +117,7 @@ module Splash
           end
         end
       end
-      def self.insert(model,id,document,fields)
+      def self.insert(collection,id,document,fields)
         result = {}
         keys = fields.keys.sort_by &:length
         rkeys = Set.new
@@ -133,7 +137,7 @@ module Splash
           DotNotation::Enumerator.new(document,key).each do |path,hsh|
             if hsh.kind_of? ::Hash
               hsh.extend(Exclusive)
-              hsh.initialize_laziness(model,id,path.join('.'))
+              hsh.initialize_laziness(collection,id,path.join('.'))
               hsh.lazify(*(value.to_a))
             end
           end

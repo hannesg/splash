@@ -26,7 +26,7 @@ module Splash
       end
       
       def wrap(object)
-        object.to_raw.reject{|k,v| ::NA == v }.merge("Type"=>Saveable.get_class_hierachie(object.class).map(&:to_s))
+        object.to_raw.merge("Type"=>Saveable.get_class_hierachie(object.class).map(&:to_s))
       end
       
       def load(keys,klass=Hash)
@@ -37,7 +37,7 @@ module Splash
         if keys["Type"]
           klass = Kernel.eval(keys["Type"].first)
         end
-        return klass.from_raw(self.unwrap(keys))
+        return klass.from_raw(keys)
       end
       
       def get_class_hierachie(klass)

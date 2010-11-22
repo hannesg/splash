@@ -16,12 +16,7 @@
 #
 module Splash::Annotated
   
-  class << self
-    def included(base)
-      base.extend(ClassMethods)
-    end
-  end
-  
+  extend Concerned
   
   module ClassMethods
   

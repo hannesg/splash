@@ -24,12 +24,7 @@ describe Splash::Annotated do
       
       include Splash::Annotated
       
-      class << self
-        def included(base)
-          base.extend(ClassMethods)
-          super
-        end
-      end
+      extend Concerned
       
       module ClassMethods
       

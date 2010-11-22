@@ -22,9 +22,7 @@ module Splash::Callbacks
   class Cancel < Break
   end
   
-  def self.included(base)
-    base.extend(ClassMethods)
-  end
+  extend Concerned
   
   protected
   def run_callbacks(name,*args)

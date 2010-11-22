@@ -20,6 +20,7 @@ require "bundler/setup"
 Bundler.require(:default,:development)
 
 Splash::Namespace.default = Splash::Namespace.new('mongodb://localhost/splash-testing')
+Splash::Lazy::Collection.invade!
 
 RSpec.configure do |config|
   config.before(:each) {

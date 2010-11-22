@@ -18,10 +18,10 @@ module Splash
   
   module HasCollection
     
-    def self.included(base)
-      super(base)
-      base.extend(ClassMethods)
-      base.instance_variable_set('@is_collection_base',true)
+    extend Concerned
+    
+    included do
+      instance_variable_set('@is_collection_base',true)
     end
     
     def store!

@@ -23,7 +23,5 @@ Dir[File.join(File.dirname(__FILE__),"/standart_extensions/**/*.rb")].each do |p
 end
 
 module Splash
-  
   autoload_all File.join(File.dirname(__FILE__),'splash')
-  
 end

@@ -20,7 +20,7 @@ class Splash::Attribute
     if block_given?
       set('default'){ block }
     elsif !fn.nil?
-      set('default'){ lambda{self.send(fn,*args)} }
+      set('default'){ lambda{|obj| obj.send(fn,*args)} }
     else
       return self.type.instance_eval &(get('default'))
     end

@@ -36,11 +36,5 @@ module Splash::Annotated
       return nil
     end
     
-    def included(base)
-      included_modules.each do |mod|
-        mod.included(base)
-      end
-    end
-    
   end
 end

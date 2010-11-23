@@ -18,11 +18,13 @@ module Splash::Embed
   
   class Persister
     def to_saveable(value)
+      raise "Embedpersister is dead"
       return value if value.nil?
       return Splash::Saveable.wrap(value)
     end
     
     def from_saveable(value)
+      raise "Embedpersister is dead"
       return value if value.nil?
       return Splash::Saveable.load(value,@base_class)
     end
@@ -34,8 +36,9 @@ module Splash::Embed
   end
   
   include Splash::HasAttributes
-  include Splash::Saveable
-  #include Splash::Validates
+  #include Splash::Saveable
+  include Splash::HasConstraints
+  include Splash::UsesTypeAttribute
   
   extend Concerned
   
@@ -51,13 +54,15 @@ module Splash::Embed
     end
     
     def persister
-      Splash::Embed::Persister.new(self.define{})
+      return self
     end
+    
+    
   end
   
   module ClassMethods
     def persister
-      Splash::Embed::Persister.new(self)
+      return self #Splash::Embed::Persister.new(self)
     end
   end
   

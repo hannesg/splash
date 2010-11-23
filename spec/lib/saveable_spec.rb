@@ -16,7 +16,7 @@
 #
 require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
-describe Splash::Saveable do
+describe 'saveable' do
   
   it "should implement a meaningful equal operator" do
     

@@ -23,7 +23,9 @@ module Splash
     # Yet, we don't want that.
     BASE = [Class.new{
       
-      include Splash::Document
+      include Splash::Documentbase
+      include Splash::HasAttributes
+      include Splash::HasCollection
       
     }].freeze
     

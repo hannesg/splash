@@ -16,28 +16,61 @@
 #
 module Concerned
   
-  def included(base=nil,&block)
-    if base
-      self.included_modules.each do |mod|
+  module SlightlyConcerned
+    
+    def included(base)
+      self.included_modules.reverse_each do |mod|
+        #next unless mod.kind_of? SlightlyConcerned
         begin
           mod.included(base)
         rescue NoMethodError
         end
       end
-      #if base.kind_of? Class
-        if self.const_defined?('ClassMethods')
-          base.extend(self.const_get('ClassMethods'))
-        end
-      #else
-        
-      #end
-      if @concerned_block
-        base.instance_eval( &@concerned_block )
+      super
+      if base.method(:included).owner == Module
+        base.extend(SlightlyConcerned)
+      end
+    end
+    
+    def inherited(base)
+      if base.method(:included).owner == Class
+        base.extend(SlightlyConcerned)
       end
       super
-    elsif block_given?
-      @concerned_block = block
     end
+    
+  end
+  
+  include SlightlyConcerned
+  
+  def included(base)
+    if self.const_defined?('ClassMethods')
+      cm = self.const_get('ClassMethods')
+      base.extend(self.const_get('ClassMethods'))
+    end
+    if instance_variable_defined? :@concerned_included_block and @concerned_included_block
+      @concerned_included_block.call(base)
+    end
+    super
+  end
+  
+  def inherited(base)
+    super
+    if @concerned_inherited_block
+      @concerned_inherited_block.call(base)
+    end
+  end
+  
+  def self.extended(base)
+    base.extend(SlightlyConcerned)
+  end
+  
+  def when_included(&block)
+    @concerned_included_block = block
+  end
+  
+  def when_inherited(&block)
+    @concerned_inherited_block = block
   end
   
 end

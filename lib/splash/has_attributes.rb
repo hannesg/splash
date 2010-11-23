@@ -217,6 +217,17 @@ CODE
         return o
       end
       
+      def to_saveable(value)
+        value = value.to_raw unless value.nil?
+        value = super(value) if defined? super
+        return value
+      end
+      
+      def from_saveable(value)
+        return value if value.nil?
+        return self.from_raw(value)
+      end
+      
     end
   end
 end

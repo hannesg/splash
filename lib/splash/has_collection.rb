@@ -20,8 +20,8 @@ module Splash
     
     extend Concerned
     
-    included do
-      instance_variable_set('@is_collection_base',true)
+    when_included do |base|
+      base.instance_variable_set('@is_collection_base',true)
     end
     
     def store!

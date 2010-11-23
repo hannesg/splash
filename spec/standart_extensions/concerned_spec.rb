@@ -14,23 +14,12 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-module Splash::Document
-  
-  include Splash::Documentbase
-  
-  #include Splash::Saveable
-  
-  include Splash::HasAttributes
-  include Splash::HasCollection
-  include Splash::Callbacks
-  include Splash::HasConstraints
-  include Splash::UsesTypeAttribute
+require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
+describe Concerned do
   
-  extend Concerned
-  
-  extend Splash::Constraint::SimpleInterface
-  
-  
+  it "should work in subsequent " do
+    
+  end
   
 end

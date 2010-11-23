@@ -40,7 +40,6 @@ describe 'single table inheritance' do
       
     end
     
-    
     STIBase.new('name'=>'base1').store!
     STIBase.new('name'=>'base2').store!
     STIBase.new('name'=>'base3').store!
@@ -65,6 +64,7 @@ describe 'single table inheritance' do
     
     STIChildOneChild.count.should == 1
     
+    STIBase.conditions('name'=>'child1_1_1').first.should be_kind_of(STIChildOneChild)
   end
   
 end

@@ -155,7 +155,7 @@ describe Splash::HasAttributes do
       
       include Splash::Document
       
-      attribute( 'comments', Hash.of(User2, String) )do
+      attribute( 'comments', Hash.of(User2, String) ) do
         
         default :new
         

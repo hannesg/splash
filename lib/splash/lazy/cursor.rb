@@ -23,15 +23,13 @@ module Splash
         keys = @fields.keys.sort_by &:length
         rkeys = Set.new
         keys.each do |key|
-          if @fields[key] == 0
-            if rkeys.any?{|key2| key2.starts_with? key}
-              raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
-            else
-              path, sub = DotNotation.pop(key)
-              result[path] ||= Set.new
-              result[path] << sub
-              rkeys << key
-            end
+          if rkeys.any?{|key2| key2.starts_with? key}
+            raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
+          else
+            path, sub = DotNotation.pop(key)
+            result[path] ||= Set.new
+            result[path] << sub
+            rkeys << key
           end
         end
         @lazy_fields = result
@@ -47,12 +45,23 @@ private
     def make_lazy(document)
       return document if @lazy_fields.none?
       id = document['_id']
-      @lazy_fields.each do |key,value|
-        DotNotation::Enumerator.new(document,key).each do |path,hsh|
-          if hsh.kind_of? ::Hash
-            hsh.extend(Lazy::Hash::Exclusive)
-            hsh.initialize_laziness(@collection,id,path.join('.'))
-            hsh.lazify(*value)
+      if @fields.value?(1)
+        @lazy_fields.each do |key,value|
+          DotNotation::Enumerator.new(document,key).each do |path,hsh|
+            if hsh.kind_of? ::Hash
+              hsh.extend(Lazy::Hash::Inclusive)
+              hsh.initialize_laziness(collection,id,path.join('.'))
+            end
+          end
+        end
+      else
+        @lazy_fields.each do |key,value|
+          DotNotation::Enumerator.new(document,key).each do |path,hsh|
+            if hsh.kind_of? ::Hash
+              hsh.extend(Lazy::Hash::Exclusive)
+              hsh.initialize_laziness(@collection,id,path.join('.'))
+              hsh.lazify(*value)
+            end
           end
         end
       end

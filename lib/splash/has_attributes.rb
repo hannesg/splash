@@ -17,6 +17,10 @@
 module Splash
   module HasAttributes
     
+    ATTRIBUTE_GETTER_REGEXP = /^([a-zA-Z_]+)$/.freeze
+    ATTRIBUTE_SETTER_REGEXP = /^([a-zA-Z_]+)=$/.freeze
+    ATTRIBUTE_QUERY_REGEXP = /^([a-zA-Z_]+)\?$/.freeze
+    
     class Attributes < BSON::OrderedHash
       
       alias_method :read, :[]
@@ -126,8 +130,8 @@ module Splash
     end
     
     def respond_to?(meth, include_private=false)
-      return true if meth =~/^([a-zA-Z_]+)\?$/
-      return true if meth =~ /^([a-zA-Z_]+)=$/
+      return true if meth =~ ATTRIBUTE_QUERY_REGEXP
+      return true if meth =~ ATTRIBUTE_SETTER_REGEXP
       super(meth, include_private)
     end
     
@@ -140,13 +144,17 @@ module Splash
     end
     
     def method_missing(meth,*args,&block)
-      if( meth.to_s =~ /^([a-zA-Z_]+)=$/ && args.size == 1 )
+      if meth == 'initialize'
+        return super
+      end
+      ms = meth.to_s
+      if( args.size == 0 and ms =~ ATTRIBUTE_GETTER_REGEXP )
+        return attributes[$1]
+      elsif( args.size == 1 and ms =~ ATTRIBUTE_SETTER_REGEXP )
         # setter
         return attributes[$1]=args.first
-      elsif( meth.to_s =~ /^([a-zA-Z_]+)$/ && args.size == 0 )
-        return attributes[$1]
-      elsif( meth.to_s =~ /^([a-zA-Z_]+)\?$/ && args.size == 0 )
-        return attributes.key?(meth.to_s) 
+      elsif( args.size == 0 and ms =~ ATTRIBUTE_QUERY_REGEXP )
+        return attributes.key?($1)
       end
       super
     end
@@ -200,20 +208,26 @@ CODE
       def from_raw(data,*args,&block)
         o = self.allocate
         o.attributes.load_raw(data)
-        o.initialize(*args,&block)
+        if o.respond_to?(:initialize,true)
+          o.send(:initialize,*args,&block)
+        end
         return o
       end
       
       def new_with_defaults(*args,&block)
         o = self.allocate
         o.attributes.complete!
-        o.initialize(*args,&block)
+        if o.respond_to?(:initialize,true)
+          o.send(:initialize,*args,&block)
+        end
         return o
       end
       
       def new_without_defaults(*args,&block)
         o = self.allocate
-        o.initialize(*args,&block)
+        if o.respond_to?(:initialize,true)
+          o.send(:initialize,*args,&block)
+        end
         return o
       end
       

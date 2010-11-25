@@ -103,6 +103,28 @@ describe Splash::Lazy do
     end
   end
   
+  it "should support lazy loading" do
+    
+    class LazyTestDocument2
+      
+      include Splash::Document
+      
+      fieldmode! :include
+      eager! 'x', 'Type'
+      
+    end
+    
+    h1 = LazyTestDocument2.new("x"=>1,"y"=>1).store!
+    h2 = LazyTestDocument2.new("x"=>2,"y"=>4).store!
+    h3 = LazyTestDocument2.new("x"=>3,"y"=>9).store!
+    h4 = LazyTestDocument2.new("x"=>4,"y"=>16).store!
+    
+    LazyTestDocument2.each do |h|
+      h.y.should == h.x**2
+    end
+    
+  end
+  
   it "should support lazy on deeper nested fields" do
     
     class LazyTestDocument2

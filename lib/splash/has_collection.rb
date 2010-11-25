@@ -34,7 +34,7 @@ module Splash
     end
     
     def initialize(*args)
-      self._id = self.class.collection.pk_factory.new
+      self._id ||= self.class.collection.pk_factory.new
       super
     end
     

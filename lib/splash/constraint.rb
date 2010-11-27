@@ -23,5 +23,9 @@ module Splash
       raise "please implement a validate method"
     end
     
+    def validates
+      return ''
+    end
+    
   end
 end

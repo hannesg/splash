@@ -15,29 +15,15 @@
 #    (c) 2010 by Hannes Georg
 #
 module Splash
-  
-  class Constraint::Valid < Constraint
-    
-    class Invalid < StandardError
-    end
-    
-    def initialize(key)
-      @key = key
-    end
-    
-    def validates
-      @key
-    end
-    
-    def validate(object,result)
-      DotNotation::Enumerator.new(object,@key).each do |path,sub|
-        if sub.respond_to? :validate
-          sub_result = sub.validate
-          if sub_result.error?
-            DotNotation.get(result,path) << sub_result
-          end
-        end
+  module HasAttributes
+    module GeneratesUpdates
+      
+      def updates
+        return Util.calculate_updates(@raw,raw)
       end
+      
     end
+    
+    
   end
 end

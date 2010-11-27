@@ -248,6 +248,112 @@ describe Splash::HasAttributes do
     
   end
   
+  describe 'updating' do
+    it 'should generate updates' do
+      
+      class HashWithUnpresentKeys < Hash
+        
+        def present_keys
+          self.keys - ['evil_key']
+        end
+        
+        def [](key)
+          raise 'You asked for the evil key!' if key == 'evil_key'
+          super
+        end
+        
+      end
+      
+      class Updateable1
+        
+        include Splash::HasAttributes
+      
+      end
+      
+      h = HashWithUnpresentKeys.new
+      h.update({'name'=>'Legion','evil_key'=>666,'position'=>{'x'=>1337,'y'=>56}})
+      
+      u1 = Updateable1.from_raw(h)
+      u1.attributes.updates.should == {'$set'=>{},'$unset'=>{}}
+      u1.name = 'Legion!'
+      u1.spirits = 2000
+      u1.position = NA
+      u1.attributes.updates.should == {'$set'=>{'name'=>'Legion!','spirits'=>2000},'$unset'=>{'position'=>1}}
+      
+    end
+  
+    it 'should work' do
+      class Updateable2
+        
+        include Splash::Documentbase
+        include Splash::HasCollection
+        include Splash::HasAttributes
+        
+      end
+      
+      u1 = Updateable2.new('hallo'=>'du')
+      
+      u1.store!
+      
+      u1 = Updateable2.first
+      
+      u1.save!
+      
+      u1.tschuess = 'du'
+      
+      u1.save!
+      
+      Updateable2.first.tschuess.should == 'du'
+      
+      u1.hallo = ::NA
+      u1.save!
+      
+      Updateable2.first.hallo.should_not be_given
+      
+    end
+    
+    it 'should work with lazy fields' do
+      class Updateable3
+        
+        include Splash::Documentbase
+        include Splash::HasCollection
+        include Splash::HasAttributes
+        
+        lazy! 'lazy'
+        
+      end
+      class Updateable4
+        
+        include Splash::Documentbase
+        include Splash::HasCollection
+        include Splash::HasAttributes
+        
+        eager! 'hallo'
+        fieldmode! :include
+        
+      end
+      
+      
+      u1 = Updateable3.new('hallo'=>'du','lazy'=>'looooooooooong text')
+      u1.store!
+      
+      u2 = Updateable4.new('hallo'=>'du','lazy'=>'looooooooooong text')
+      u2.store!
+      
+      u1 = Updateable3.first
+      u1.tschuess = 'du'
+      u1.save!
+      
+      u2 = Updateable4.first
+      u2.tschuess = 'du'
+      u2.save!
+      
+      Updateable3.first.tschuess.should == 'du'
+      Updateable4.first.tschuess.should == 'du'
+    end
+    
+  end
+  
   describe 'threading' do
   
     it 'could maybe work' do

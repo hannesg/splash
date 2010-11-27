@@ -33,7 +33,14 @@ module Concerned
     end
     
     def inherited(base)
-      if base.method(:included).owner == Class
+      if base.method(:inherited).owner == Class
+        base.extend(SlightlyConcerned)
+      end
+      super
+    end
+    
+    def extended(base)
+      if base.method(:extended).owner == Module
         base.extend(SlightlyConcerned)
       end
       super
@@ -61,6 +68,13 @@ module Concerned
     end
   end
   
+  def extended(base)
+    super
+    if @concerned_extended_block
+      @concerned_extended_block.call(base)
+    end
+  end
+  
   def self.extended(base)
     base.extend(SlightlyConcerned)
   end
@@ -71,6 +85,10 @@ module Concerned
   
   def when_inherited(&block)
     @concerned_inherited_block = block
+  end
+  
+  def when_extended(&block)
+    @concerned_extended_block = block
   end
   
 end

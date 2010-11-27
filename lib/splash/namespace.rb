@@ -98,14 +98,19 @@ module Splash
       return kn
     end
     
-    def initialize(uri='mongodb://localhost/splash')
-      match = URI_MATCHER.match(uri)
-      if match.nil?
-        @db = Mongo::Connection.from_uri(uri,:logger=>LoggerDelegator.new)
+    def initialize(uri_or_db='mongodb://localhost/splash')
+      if uri_or_db.kind_of? Mongo::DB
+        @db = uri_or_db
       else
-        @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LoggerDelegator.new).db(match[3])
+        match = URI_MATCHER.match(uri_or_db)
+        if match.nil?
+          @db = Mongo::Connection.from_uri(uri_or_db,:logger=>LoggerDelegator.new)
+        else
+          @db = Mongo::Connection.new(match[1],match[2].length==0 ? nil : match[2].to_i,:logger=>LoggerDelegator.new).db(match[3])
+        end
+        @uri = uri_or_db
       end
-      @uri = uri
+      
       #@class_collection_map = {}
       #@top_classes = {}
     end
@@ -145,47 +150,8 @@ module Splash
       end
       raise "Couldn't find a collection for #{klass}!"
       return nil
-=begin
-      return @class_collection_map[klass] if( @class_collection_map.key? klass)
-      
-      
-      classes=[]
-      
-      thiz = self
-      
-      klass.self_and_superclasses do |k|
-        if @class_collection_map.key? k
-          collection = @class_collection_map[k]
-          classes.each do |sk|
-            @class_collection_map[sk]=collection
-          end
-          return collection
-        elsif k.named? and k.respond_to?(:namespace) && k.namespace == thiz
-          classes.push(k)
-        else
-          break
-        end
-      end
-      
-      @class_collection_map.key? classes.last
-      
-      collection=@db.collection(self.class_to_collection_name(classes.last.to_s))
-      
-      @top_classes[collection.name] = classes.last
-      
-      classes.each do |klass|
-        @class_collection_map[klass]=collection
-      end
-      
-      return collection
-=end
     end
-=begin
-    def class_for(collection_name)
-      return @top_classes[collection_name] if @top_classes[collection_name]
-      return @top_classes[collection_name] = Kernel.const_get(collection_to_class_name(collection_name))
-    end
-=end
+    
     def class_for(collection_name)
       begin
         return collection_to_class_name(collection_name).split('::').inject(Kernel) do |memo,obj|
@@ -194,8 +160,6 @@ module Splash
       catch NameError => e
         raise ClassNotFound.new('No Class found for ' + collection_name +'. Error received: ' + e.message)
       end
-      
-      #return Kernel.const_get(collection_to_class_name(collection_name))
     end
     
     def dereference(dbref)
@@ -205,21 +169,12 @@ module Splash
       rescue ClassNotFound => e
         warn e.message
       end
-      #return Saveable.load( @db.dereference(dbref) )
-      #self.class_for(dbref.namespace).conditions('_id'=>dbref.object_id).first
     end
     
+    attr_reader :db
+    
     def collection(name)
-      @db.collection(name)
+      Splash::Collection.new(self,name)#@db.collection(name)
     end
-=begin
-    def register(klass,collection,top=true)
-      collection = self.collection(collection) if collection.kind_of? String
-      @class_collection_map[klass] = collection
-      if top
-        @top_classes[collection.name] = klass
-      end
-    end
-=end
   end
 end

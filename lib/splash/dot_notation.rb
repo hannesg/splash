@@ -93,6 +93,29 @@ module Splash::DotNotation
     
   end
   
+  class Recursor
+    
+    include Enumerable
+    
+    def initialize(object,path)
+      @object = object
+      @path = DotNotation.parse_path(path)
+    end
+    
+    def each
+      obj = @object
+      l = path.length
+      i = 0
+      while i < l
+        yield(obj,path[i])
+        obj = DotNotation.get_key(obj,path[i])
+        i += 1
+      end
+      return obj
+    end
+    
+  end
+  
   def sub(path,start_or_range,length=-1)
     
   end

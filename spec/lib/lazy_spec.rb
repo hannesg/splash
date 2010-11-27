@@ -150,5 +150,35 @@ describe Splash::Lazy do
     
   end
   
+  it "should be dupable" do
+    
+    col = Splash::Namespace.default.collection('lazy_test3')
+    col.save({
+      'first_name'=>'Mike',
+      'last_name'=>'Sim',
+      'interests'=>[{'name'=>'Basketball'},{'name'=>'Golf'}],
+      'deeply'=>{'nested'=>{'thing'=>'lulz!'}}
+    })
+    
+    doc = col.find_one(nil,{:fields=>{'last_name'=>0,'deeply.nested.thing'=>0}})
+    doc2 = col.find_one(nil,{:fields=>{'first_name'=>1,'interests'=>1}})
+  
+    docc = doc.clone
+    doc.lazy?('last_name').should be_true
+    docc['last_name'].should == 'Sim'
+    docc['deeply']['nested']['thing'].should == 'lulz!'
+    docc['interests'] << {'name'=>'Programming'}
+    doc['interests'].should have(2).items
+    
+    
+    docc2 = doc2.clone
+    docc2['last_name'].should == 'Sim'
+    doc2['last_name'].should == 'Sim'
+    docc2['deeply']['nested']['thing'].should == 'lulz!'
+    docc2['interests'] << {'name'=>'Programming'}
+    doc2['interests'].should have(2).items
+    
+  end
+  
   
 end

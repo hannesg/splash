@@ -16,28 +16,22 @@
 #
 module Splash
   
-  class Constraint::Valid < Constraint
-    
-    class Invalid < StandardError
+  class Collection < Mongo::Collection
+  
+    def initialize(namespace,name)
+      @namespace = namespace
+      super(namespace.db,name)
     end
     
-    def initialize(key)
-      @key = key
+    def _dump(limit)
+      Marshal.dump([Splash::Namespace::NAMESPACES.index(@namespace),name])
     end
-    
-    def validates
-      @key
+  
+    def self._load(str)
+     a = Marshal.load(str)
+     return Splash::Namespace::NAMESPACES[a[0]].collection(a[1])
     end
-    
-    def validate(object,result)
-      DotNotation::Enumerator.new(object,@key).each do |path,sub|
-        if sub.respond_to? :validate
-          sub_result = sub.validate
-          if sub_result.error?
-            DotNotation.get(result,path) << sub_result
-          end
-        end
-      end
-    end
+  
   end
+  
 end

@@ -16,28 +16,19 @@
 #
 module Splash
   
-  class Constraint::Valid < Constraint
+  module Constraint::SkipClean
     
-    class Invalid < StandardError
-    end
-    
-    def initialize(key)
-      @key = key
-    end
-    
-    def validates
-      @key
-    end
-    
-    def validate(object,result)
-      DotNotation::Enumerator.new(object,@key).each do |path,sub|
-        if sub.respond_to? :validate
-          sub_result = sub.validate
-          if sub_result.error?
-            DotNotation.get(result,path) << sub_result
-          end
+    def validate
+      result = Splash::Constraint::Result.new
+      self.class.each_constraints do |constraint|
+        unless self.clean? constraint.validates
+          constraint.validate(self,result)
         end
       end
+      return result
     end
+    
+    
   end
+  
 end

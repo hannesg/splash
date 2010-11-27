@@ -17,11 +17,15 @@
 module Splash
   module HasAttributes
     
+    autoload_all File.join(File.dirname(__FILE__),'has_attributes')
+    
     ATTRIBUTE_GETTER_REGEXP = /^([a-zA-Z_]+)$/.freeze
     ATTRIBUTE_SETTER_REGEXP = /^([a-zA-Z_]+)=$/.freeze
     ATTRIBUTE_QUERY_REGEXP = /^([a-zA-Z_]+)\?$/.freeze
     
     class Attributes < BSON::OrderedHash
+      
+      include HasAttributes::GeneratesUpdates
       
       alias_method :read, :[]
       alias_method :write, :[]=
@@ -30,6 +34,15 @@ module Splash
         attrs.each do |key,value|
           self[key]=value
         end
+      end
+      
+      def dirty?(key)
+        return true if @deleted_keys.include? key
+        return self.key? key
+      end
+      
+      def clean?(key)
+        !dirty?(key)
       end
       
       # this is a brain transplantation!
@@ -42,9 +55,11 @@ module Splash
       
       def [](key)
         #@sync.synchronize(Sync::SH){
-          return super if( self.key? key )
+        return ::NA if( @deleted_keys.include? key )
+        return super if( self.key? key )
+          
           #@sync.synchronize(Sync::EX){
-            return super if( self.key? key )
+            #return super if( self.key? key )
             if( @raw.key? key )
               value = @class.attribute_persister(key).from_saveable(@raw[key])
             else
@@ -54,10 +69,16 @@ module Splash
               self.delete(key)
             else
               self.write(key,value)
+              @deleted_keys.delete key
             end
             return value
           #}
         #}
+      end
+      
+      def key?(k)
+        return false if @deleted_keys.include? k
+        return super
       end
       
       def []=(key,value)
@@ -66,8 +87,14 @@ module Splash
             self.delete(key)
           else
             self.write(key,value)
+            @deleted_keys.delete key
           end
         #}
+      end
+      
+      def delete(key)
+        super
+        @deleted_keys << key
       end
       
       def initialize(klass)
@@ -75,12 +102,12 @@ module Splash
         @class = klass
         @raw = {}
         @sync = Sync::Dummy.new
+        @deleted_keys = Set.new
         #complete!
       end
       
       def raw
-        write_back!
-        return @raw
+        return write_into!(@raw.clone)
       end
       
       def type(key)
@@ -91,6 +118,14 @@ module Splash
         @sync.synchronize(Sync::SH){
           super
         }
+      end
+      
+      def write_back!
+        @sync.synchronize(Sync::EX){
+          write_into!(@raw)
+          @deleted_keys.clear
+        }
+        return self
       end
       
       protected
@@ -112,14 +147,29 @@ module Splash
           self.replace({})
         end
         
-        def write_back!
+        def write_into!(target={})
           self.each do |key,value|
-            @raw[key]=@class.attribute_persister(key).to_saveable(value)
+            target[key]=@class.attribute_persister(key).to_saveable(value)
           end
+          @deleted_keys.each do |key|
+            target.delete(key)
+          end
+          return target
         end
     end
     
     extend Concerned
+    extend Combineable
+    
+    combined_with(HasCollection) do |base|
+      base.class_eval do
+        def save!
+          self.update!(self.attributes.updates)
+          self.attributes.write_back!
+        end
+      end
+    end
+    
     
     def attributes
       @attributes ||= Attributes.new(self.class)

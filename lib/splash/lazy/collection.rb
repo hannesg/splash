@@ -39,13 +39,10 @@ module Splash
     end
     
     def self.invade!
-      unless Mongo::Collection < Lazy::Collection
+      unless Splash::Collection < Lazy::Collection
         puts "invaded!"
-        Mongo::Collection.send(:include,Lazy::Collection)
+        Splash::Collection.send(:include,Lazy::Collection)
       end
-      #puts ::Mongo::Collection.included_modules.inspect
-      #c = Mongo::Collection.instance_method(:find)
-      #puts c.owner.inspect
     end
     
   end

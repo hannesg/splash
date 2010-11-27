@@ -16,6 +16,19 @@
 #
 require "bson"
 module BSON
+  
+  class OrderedHash
+    
+    def dup
+      result = super
+      result.instance_eval do
+        @ordered_keys = @ordered_keys.dup
+      end
+      return result
+    end
+    
+  end
+  
   module ClassTypeConverter
     
     MAX_INT32 = 2**31-1

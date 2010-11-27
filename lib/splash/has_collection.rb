@@ -29,6 +29,17 @@ module Splash
       return self
     end
     
+    def update!(updates)
+      updates = updates.inject({}) do |memo,(k,v)|
+        if v.any?
+          memo[k] = v 
+        end
+        memo
+      end
+      return if updates.none?
+      return self.class.collection.update({'_id'=>self._id},updates)
+    end
+    
     def remove!
       return self.class.collection.remove('_id'=>self._id)
     end

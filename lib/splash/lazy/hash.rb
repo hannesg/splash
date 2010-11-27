@@ -18,13 +18,24 @@ require "set"
 module Splash
   module Lazy
     
-    HIS_ROYAL_LAZINESS = ArgumentError.new
-    
-    def HIS_ROYAL_LAZINESS.inspect
-      return "<His royal laziness>"
+    class Ness
+      def new
+        @@instance ||= super
+      end
+      def self._load(str)
+        self.new
+      end
+      def _store(limit)
+        'lazy'
+      end
+      def inspect
+        '<his royal laziness>'
+      end
     end
     
-    module Hash #< Hash
+    HIS_ROYAL_LAZINESS = Ness.new
+    
+    module Hash
     
       # In the exclusive model, you decide explicitly, which keys are
       # lazy. All others aren't!
@@ -32,18 +43,21 @@ module Splash
         
         def self.extended(base)
           base.instance_eval do
-            @lazy_collection = nil
-            @lazy_id = nil
-            @lazy_path = nil
-            @lazy_fields = nil
-            @lazy_mutex = Mutex.new
-            @lazy_complete = false
+            @lazy_collection ||= nil
+            @lazy_id ||= nil
+            @lazy_path ||= nil
+            @lazy_mutex ||= Mutex.new
+            @lazy_complete ||= false
           end
+        end
+        
+        def present_keys
+          keys.select{|k| !lazy? k }
         end
         
         def [](key,load=true)
           v = super(key)
-          if load and v == HIS_ROYAL_LAZINESS 
+          if load and v.kind_of? Ness
             self.demand!(key)
             return super(key)
           end
@@ -64,7 +78,7 @@ module Splash
         end
         
         def lazy?(field)
-          self[field,false] == HIS_ROYAL_LAZINESS 
+          self[field,false].kind_of? Ness
         end
         
         def initialize_laziness(collection,id,path)
@@ -76,7 +90,7 @@ module Splash
           @lazy_mutex.synchronize do
             fields.each do |field|
               unless self.key?(field,false)
-                self[field]=HIS_ROYAL_LAZINESS
+                self[field] = HIS_ROYAL_LAZINESS
               end
             end
           end
@@ -171,6 +185,11 @@ module Splash
           !key?(k,false) and !@lazy_fields.include?(k)
         end
         
+        def delete(k)
+          super
+          @lazy_fields << k
+        end
+        
         def complete!
           return if @lazy_complete
           @lazy_mutex.synchronize do
@@ -190,9 +209,6 @@ module Splash
           return if @lazy_complete
           @lazy_mutex.synchronize do
             keys = keys.select{|k| self.lazy? k }
-            if keys.include? 'initialize'
-              raise "woot?"
-            end
             return if keys.none?
             fields = keys.inject({}){|memo,k| memo[DotNotation.join(@lazy_path,k)]=1; memo }
             docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>(fields)})
@@ -214,6 +230,8 @@ module Splash
         end
       end
       
+      
+      
       def self.insert(collection,id,document,fields)
         if fields.none?
           return document
@@ -231,7 +249,6 @@ module Splash
             rkeys << key
           end
         end
-        puts fields.inspect
         if fields.value?(1)
           result.each do |key,value|
             DotNotation::Enumerator.new(document,key).each do |path,hsh|

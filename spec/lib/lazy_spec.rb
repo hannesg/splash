@@ -119,15 +119,22 @@ describe Splash::Lazy do
     h3 = LazyTestDocument2.new("x"=>3,"y"=>9).store!
     h4 = LazyTestDocument2.new("x"=>4,"y"=>16).store!
     
-    LazyTestDocument2.each do |h|
-      h.y.should == h.x**2
-    end
+    Splash::Namespace.count_requests{
+      LazyTestDocument2.each do |h|
+        h.y.should == h.x**2
+      end
+    }.should == 5
     
+    Splash::Namespace.count_requests{
+      LazyTestDocument2.eager('z').each do |h|
+        h.z.should_not be_available
+      end
+    }.should == 1
   end
   
   it "should support lazy on deeper nested fields" do
     
-    class LazyTestDocument2
+    class LazyTestDocument3
       
       include Splash::Document
       
@@ -135,19 +142,22 @@ describe Splash::Lazy do
       
     end
     
-    h1 = LazyTestDocument2.new("child"=>{"x"=>1,"y"=>1}).store!
-    h2 = LazyTestDocument2.new("child"=>{"x"=>2,"y"=>4}).store!
-    h3 = LazyTestDocument2.new("child"=>{"x"=>3,"y"=>9}).store!
-    h4 = LazyTestDocument2.new("child"=>{"x"=>4,"y"=>16}).store!
+    h1 = LazyTestDocument3.new("child"=>{"x"=>1,"y"=>1}).store!
+    h2 = LazyTestDocument3.new("child"=>{"x"=>2,"y"=>4}).store!
+    h3 = LazyTestDocument3.new("child"=>{"x"=>3,"y"=>9}).store!
+    h4 = LazyTestDocument3.new("child"=>{"x"=>4,"y"=>16}).store!
     
-    LazyTestDocument2.each do |h|
+    Splash::Namespace.count_requests{
+    LazyTestDocument3.each do |h|
       h.child["y"].should == h.child["x"]**2
     end
-      
-    LazyTestDocument2.eager('child.y').each do |h|
+    }.should == 5
+    
+    Splash::Namespace.count_requests{
+    LazyTestDocument3.eager('child.y').each do |h|
       h.child["y"].should == h.child["x"]**2
     end
-    
+    }.should == 1
   end
   
   it "should be dupable" do
@@ -163,15 +173,21 @@ describe Splash::Lazy do
     doc = col.find_one(nil,{:fields=>{'last_name'=>0,'deeply.nested.thing'=>0}})
     doc2 = col.find_one(nil,{:fields=>{'first_name'=>1,'interests'=>1}})
   
-    docc = doc.clone
+    docc = nil
+    Splash::Namespace.count_requests{
+      docc = doc.deep_clone
+    }.should == 0
+    
     doc.lazy?('last_name').should be_true
     docc['last_name'].should == 'Sim'
     docc['deeply']['nested']['thing'].should == 'lulz!'
     docc['interests'] << {'name'=>'Programming'}
     doc['interests'].should have(2).items
     
-    
-    docc2 = doc2.clone
+    docc2 = nil
+    Splash::Namespace.count_requests{
+      docc2 = doc2.deep_clone
+    }.should == 0
     docc2['last_name'].should == 'Sim'
     doc2['last_name'].should == 'Sim'
     docc2['deeply']['nested']['thing'].should == 'lulz!'

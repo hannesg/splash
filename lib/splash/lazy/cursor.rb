@@ -51,6 +51,7 @@ private
             if hsh.kind_of? ::Hash
               hsh.extend(Lazy::Hash::Inclusive)
               hsh.initialize_laziness(collection,id,path.join('.'))
+              hsh.unlazify(*value)
             end
           end
         end

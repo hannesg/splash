@@ -21,4 +21,12 @@ class Array
     self[1..-1] || []
   end
   
+  def deep_clone
+    c = self.clone
+    c.map!{|v|
+      v.deep_clone
+    }
+    return c
+  end
+  
 end

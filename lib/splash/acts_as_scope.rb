@@ -76,29 +76,44 @@ module Splash
       clone
     end
     
-    def each(&block)
+    
+    CHUNK_SIZE = 10
+    
+    def each(chunk_size=CHUNK_SIZE, &block)
       a = block.arity
-      docs = []
       
+      chunk = []
+      num_returned = 0
+      cursor = self.clone.scope_cursor
       eigenpersister = self.scope_root.eigenpersister
+      batch = eigenpersister.respond_to? :from_saveable_batch
       
-      self.clone.scope_cursor.each do |o|
-        docs << eigenpersister.from_saveable(o)
-      end
-      
-      if self.scope_options.includes.any?
-        inc = self.scope_options.includes.sort_by &:length
-        # preload it ...
-      end
-      
-      if a == 1
-        docs.each do |o|
-          yield o
+      remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
+      begin
+        while remaining
+          chunk << cursor.next_document
+          num_returned += 1
+          remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
+          if chunk.size == chunk_size or !remaining
+            if batch
+              chunk = eigenpersister.from_saveable_batch(chunk)
+            else
+              chunk = chunk.map{|obj| eigenpersister.from_saveable(obj)}
+            end
+            if a == 1
+              chunk.each do |o|
+                yield o
+              end
+            elsif a == 2
+              chunk.each do |o|
+                yield(o._id,o.value)
+              end
+            end
+            chunk = []
+          end
         end
-      elsif a == 2
-        docs.each do |o|
-          yield(o._id,o.value)
-        end
+      ensure
+        cursor.close()
       end
       self
     end

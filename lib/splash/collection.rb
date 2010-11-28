@@ -32,6 +32,8 @@ module Splash
      return Splash::Namespace::NAMESPACES[a[0]].collection(a[1])
     end
   
+    
+  
   end
   
 end

@@ -107,7 +107,7 @@ module Splash
       end
       
       def raw
-        return write_into!(@raw.clone)
+        return write_into!(@raw.deep_clone)
       end
       
       def type(key)
@@ -252,7 +252,8 @@ CODE
       def attribute_default(name)
         a = "attribute_#{name}_default"
         return ::NA unless self.respond_to?(a)
-        return attribute_type(name).instance_eval &send(a)
+        method = self.send(a)
+        return attribute_type(name).instance_eval &method
       end
       
       def from_raw(data,*args,&block)
@@ -290,6 +291,10 @@ CODE
       def from_saveable(value)
         return value if value.nil?
         return self.from_raw(value)
+      end
+      
+      def from_saveable_batch(docs,*)
+        docs.map{|doc| from_saveable(doc) }
       end
       
     end

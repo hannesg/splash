@@ -69,6 +69,17 @@ module Splash
       NAMESPACES[:default] = value
     end
     
+    def self.request_id
+      Mongo::Connection.class_eval '@@current_request_id'
+    end
+    
+    def self.count_requests
+      old_q = self.request_id
+      yield
+      new_q = self.request_id
+      return new_q - old_q
+    end
+    
     def self.debug
       begin
         self.logger.level, old = Logger::DEBUG, self.logger.level

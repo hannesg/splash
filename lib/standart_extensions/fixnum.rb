@@ -14,17 +14,10 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require File.join File.dirname(__FILE__), "object"
-require File.join File.dirname(__FILE__), "module"
-class Hash
+class Fixnum
   
   def deep_clone
-    c = self.clone
-    keys = c.keys
-    keys.each do |k|
-      c[ k.deep_clone ] = c.delete(k).deep_clone
-    end
-    return c
+    return self
   end
   
 end

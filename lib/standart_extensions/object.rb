@@ -16,6 +16,7 @@
 #
 class Object
   
+  alias_method :deep_clone, :clone
   
   def given?
     available? && !nil?

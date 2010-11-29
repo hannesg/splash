@@ -132,9 +132,39 @@ describe Splash::Lazy do
     }.should == 1
   end
   
-  it "should support lazy on deeper nested fields" do
+  it "should support lazy loading" do
     
     class LazyTestDocument3
+      
+      include Splash::Documentbase
+      include Splash::HasAttributes
+      include Splash::HasCollection
+      
+      fieldmode! :none
+      
+    end
+    
+    h1 = LazyTestDocument3.new("x"=>1,"y"=>1).store!
+    h2 = LazyTestDocument3.new("x"=>2,"y"=>4).store!
+    h3 = LazyTestDocument3.new("x"=>3,"y"=>9).store!
+    h4 = LazyTestDocument3.new("x"=>4,"y"=>16).store!
+    
+    Splash::Namespace.count_requests{
+      LazyTestDocument3.each do |h|
+        h.y.should == h.x**2
+      end
+    }.should == 9
+    
+    Splash::Namespace.count_requests{
+      LazyTestDocument3.eager('y').each do |h|
+        h.y.should == h.x**2
+      end
+    }.should == 9
+  end
+  
+  it "should support lazy on deeper nested fields" do
+    
+    class LazyTestDocument4
       
       include Splash::Document
       
@@ -142,19 +172,19 @@ describe Splash::Lazy do
       
     end
     
-    h1 = LazyTestDocument3.new("child"=>{"x"=>1,"y"=>1}).store!
-    h2 = LazyTestDocument3.new("child"=>{"x"=>2,"y"=>4}).store!
-    h3 = LazyTestDocument3.new("child"=>{"x"=>3,"y"=>9}).store!
-    h4 = LazyTestDocument3.new("child"=>{"x"=>4,"y"=>16}).store!
+    h1 = LazyTestDocument4.new("child"=>{"x"=>1,"y"=>1}).store!
+    h2 = LazyTestDocument4.new("child"=>{"x"=>2,"y"=>4}).store!
+    h3 = LazyTestDocument4.new("child"=>{"x"=>3,"y"=>9}).store!
+    h4 = LazyTestDocument4.new("child"=>{"x"=>4,"y"=>16}).store!
     
     Splash::Namespace.count_requests{
-    LazyTestDocument3.each do |h|
+    LazyTestDocument4.each do |h|
       h.child["y"].should == h.child["x"]**2
     end
     }.should == 5
     
     Splash::Namespace.count_requests{
-    LazyTestDocument3.eager('child.y').each do |h|
+    LazyTestDocument4.eager('child.y').each do |h|
       h.child["y"].should == h.child["x"]**2
     end
     }.should == 1

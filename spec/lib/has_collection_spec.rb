@@ -56,4 +56,9 @@ describe Splash::HasCollection do
     
   end
   
+  it "should support something other than ObjectId as _id" do
+    
+    
+  end
+  
 end

@@ -84,8 +84,10 @@ module Splash::ActsAsScope
     def options
       opt=@options.slice(*OPTION_KEYS)
       if opt.key? :fields
-        if @options[:fieldmode]==:eager
+        if @options[:fieldmode]==:all
           opt.delete :fields
+        elsif @options[:fieldmode]==:none
+          opt[:fields]={}
         else
           fieldmode = (@options[:fieldmode]==:include ? 0 : 1)
           opt[:fields]=opt[:fields].reject{|key,value|

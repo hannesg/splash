@@ -215,6 +215,13 @@ module Splash
       obj.store!
       return obj
     end
+    
+    def exists?
+      sc = self.fieldmode(:none).limit(1).scope_cursor
+      result = sc.has_next?
+      sc.close
+      return result
+    end
 
     protected
       

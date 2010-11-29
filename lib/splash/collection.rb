@@ -23,6 +23,10 @@ module Splash
       super(namespace.db,name)
     end
     
+    def [](name)
+      @namespace.collection(self.name+'.'+name)
+    end
+    
     def _dump(limit)
       Marshal.dump([Splash::Namespace::NAMESPACES.index(@namespace),name])
     end

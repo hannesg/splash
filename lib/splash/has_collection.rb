@@ -44,9 +44,9 @@ module Splash
       return self.class.collection.remove('_id'=>self._id)
     end
     
-    def initialize(*args)
-      self._id ||= self.class.collection.pk_factory.new
-      super
+    def demand_id!
+      self._id ||= self.class.collection.pk_factory.create_pk(self.class.eigenpersister.to_saveable(self))[:_id]
+      return self._id
     end
     
     def ==(other)

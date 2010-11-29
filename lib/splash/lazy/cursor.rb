@@ -19,20 +19,22 @@ module Splash
       
     def self.extended(base)
       base.instance_eval do
-        result = {}
-        keys = @fields.keys.sort_by &:length
-        rkeys = Set.new
-        keys.each do |key|
-          if rkeys.any?{|key2| key2.starts_with? key}
-            raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
-          else
-            path, sub = DotNotation.pop(key)
-            result[path] ||= Set.new
-            result[path] << sub
-            rkeys << key
+        if @fields.kind_of? Hash
+          result = {}
+          keys = @fields.keys.sort_by &:length
+          rkeys = Set.new
+          keys.each do |key|
+            if rkeys.any?{|key2| key2.starts_with? key}
+              raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
+            else
+              path, sub = DotNotation.pop(key)
+              result[path] ||= Set.new
+              result[path] << sub
+              rkeys << key
+            end
           end
+          @lazy_fields = result
         end
-        @lazy_fields = result
       end
     end
     
@@ -43,9 +45,9 @@ module Splash
     end
 private
     def make_lazy(document)
-      return document if @lazy_fields.none?
+      return document unless defined? @lazy_fields
       id = document['_id']
-      if @fields.value?(1)
+      if @fields.value?(1) or @fields.none?
         @lazy_fields.each do |key,value|
           DotNotation::Enumerator.new(document,key).each do |path,hsh|
             if hsh.kind_of? ::Hash

@@ -23,9 +23,9 @@ class Splash::Password
   
   DIGESTER = Digest::SHA1
   
-  def_attribute( 'salt' )
+  attribute 'salt'
   
-  def_attribute( 'hash' )
+  attribute 'hash'
   
   def matches?(string)
     DIGESTER.hexdigest("#{string}#{self.salt}") == self.hash

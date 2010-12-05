@@ -122,7 +122,7 @@ module Splash
       end
       
       def has_own_collection?
-        if self.respond_to?(:_collection) and self.method(:_colletion).owner == self.eigenclass
+        if self.respond_to?(:_collection) and self.method(:_colletion).owner == self.extension
           return true
         end
         k = self.superclass

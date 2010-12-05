@@ -95,6 +95,9 @@ module Splash::DotNotation
   
   class Recursor
     
+    class Position < Struct.new(:past,:future)
+    end
+    
     include Enumerable
     
     def initialize(object,path)
@@ -104,14 +107,18 @@ module Splash::DotNotation
     
     def each
       obj = @object
-      l = path.length
-      i = 0
-      while i < l
-        yield(obj,path[i])
-        obj = DotNotation.get_key(obj,path[i])
-        i += 1
+      past = []
+      future = @path.dup
+      while true
+        yield(obj,Position.new(past.dup,future.dup))
+        if future.any?
+          k = future.unshift
+          obj = DotNotation.get_key(obj,k)
+          past.push( k )
+        else
+          return obj
+        end
       end
-      return obj
     end
     
   end

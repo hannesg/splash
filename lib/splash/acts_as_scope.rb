@@ -165,7 +165,7 @@ module Splash
     end
     
     def +(other_scope)
-    
+      Scope.new(self,scope_options.merge(other_scope.scope_options,:or))
     end
     
     def -(other_scope)

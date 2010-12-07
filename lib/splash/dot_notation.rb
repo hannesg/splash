@@ -30,22 +30,24 @@ module Splash::DotNotation
       @path = path
     end
     
-    def each(&block)
-      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,false)
+    def each(options={},&block)
+      options = {:iterate_last=>true}.merge(options)
+      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,false,options)
     end
     
-    def map!(&block)
-      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,true)
+    def map!(options={},&block)
+      options = {:iterate_last=>true}.merge(options)
+      traverse(@object,[],Splash::DotNotation.parse_path(@path),block,true,options)
     end
     
-    def final(object,history,key,block,set)
+    def final(object,history,key,block,set,options)
       if object.kind_of? Hash
         o = object[key]
       else
         o = object.send(key)
       end
-      if o.kind_of? Array
-        return traverse(o,history + [key],[],block,set)
+      if options[:iterate_last] and o.kind_of? Array
+        return traverse(o,history + [key],[],block,set,options)
       end
       value = block.call(history + [key],o)
       if set
@@ -58,7 +60,7 @@ module Splash::DotNotation
       return value
     end
     
-    def traverse(object,history,future,block,set=false)
+    def traverse(object,history,future,block,set=false,options={})
       if object.kind_of?(Array)
         if future.first.kind_of?(Numeric)
           if future.one?
@@ -68,12 +70,12 @@ module Splash::DotNotation
             end
             return value;
           end
-          traverse(object[future.first], history +[future.first], future.rest,block, set)
+          traverse(object[future.first], history +[future.first], future.rest,block, set,options)
         else
           i = 0
           l = object.length
           while i < l
-            traverse(object, history , [i] + future, block, set)
+            traverse(object, history , [i] + future, block, set,options)
             i+=1
           end
         end
@@ -83,11 +85,11 @@ module Splash::DotNotation
         end
         block.call(history,object)
       elsif future.one?
-        return final(object,history,future.first,block,set)
+        return final(object,history,future.first,block,set,options)
       elsif object.kind_of? Hash
-        traverse(object[future.first],history + [future.first], future.rest,block, set)
+        traverse(object[future.first],history + [future.first], future.rest,block, set,options)
       else
-        traverse(object.send(future.first),history + [future.first], future.rest,block, set)
+        traverse(object.send(future.first),history + [future.first], future.rest,block, set,options)
       end
     end
     

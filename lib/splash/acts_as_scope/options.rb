@@ -32,13 +32,13 @@ module Splash::ActsAsScope
       @options.freeze
     end
     
-    def merge(options)
-      self.class.new(self.class.merge_options(@options,options))
+    def merge(options,mode = :and)
+      self.class.new(self.class.merge_options(@options,options,mode))
     end
     
-    def self.merge_options(a,b)
+    def self.merge_options(a,b,mode = :and)
       return {
-        :query => Matcher.and(a[:query],b[:query]),
+        :query => Matcher.send(mode,a[:query],b[:query]),
         :fields => (b[:fields] ? (a[:fields] + b[:fields]) : a[:fields]),
         :fieldmode => (b[:fieldmode] || a[:fieldmode]),
         :extend_scoped => (a[:extend_scoped] + (b[:extend_scoped] || [])),

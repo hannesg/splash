@@ -22,6 +22,11 @@ module Lazy
       @lazy_complete
     end
     
+    def initialize_laziness(collection,id,path)
+      @lazy_collection, @lazy_id, @lazy_path = collection, id, path
+      return self
+    end
+    
     def demand!(*keys)
       return if complete?
       @lazy_mutex.synchronize do
@@ -50,6 +55,7 @@ module Lazy
     def complete!
       return if complete?
       @lazy_mutex.synchronize do
+        return if complete?
         docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{@lazy_path => 1}})
         if docs.has_next?
           doc = docs.next_document

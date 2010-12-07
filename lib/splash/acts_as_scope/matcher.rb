@@ -86,8 +86,7 @@ module Splash::ActsAsScope
           # 
           return true
         end
-        value = get_value(object,key)
-        
+        value = Splash::DotNotation.get(object,key)
         return false unless Matcher.match_atomic(value,matcher)
       end
       return true
@@ -155,7 +154,7 @@ module Splash::ActsAsScope
     
     def dnf
       base = self.dup
-      self_or = base.delete(OR,[Matcher.new])
+      self_or = base.delete(OR) || [Matcher.new]
       return self_or.map do |sub|
         sub.and(base)
       end
@@ -169,6 +168,50 @@ module Splash::ActsAsScope
         result = result.and(Matcher.cast(arg))
       end
       return result
+    end
+    
+    def self.or(*args)
+      args.compact!
+      return nil unless args.any?
+      result = args.pop
+      args.each do |arg|
+        result = result.or(Matcher.cast(arg))
+      end
+      return result
+    end
+    
+    def relation(to)
+      can_be_subset = true
+      can_be_superset = true
+      must_be_disjunct = false
+      
+      self.each do |key,matcher|
+        if( to.key? key )
+          other = to[key]
+          if other == matcher
+            # okay, equal things are ignored are ignored
+          elsif other.kind_of? Hash and matcher.kind_of? Hash
+          
+          else
+            # no idea ...
+            return nil
+          end
+        else
+          # to can't be a subset of self
+          can_be_subset = false
+        end
+      end
+      
+      to.each do |key,matcher|
+        unless( self.key? key )
+          can_be_superset = false
+        end
+      end
+      
+      if can_be_subset and can_be_superset
+        return nil
+      end
+      
     end
     
     protected

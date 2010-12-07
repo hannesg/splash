@@ -79,11 +79,6 @@ module Lazy
       self[field,false].kind_of? Ness
     end
     
-    def initialize_laziness(collection,id,path)
-      @lazy_collection, @lazy_id, @lazy_path = collection, id, path
-      return self
-    end
-    
     def lazify(*fields)
       @lazy_mutex.synchronize do
         fields.each do |field|

@@ -22,11 +22,9 @@ describe Splash::ActsAsScope::Matcher do
     
     it "should work in an easy case" do
       
-      a = Splash::AttributedStruct.new
-      
-      a.foo = "blue"
-      
-      a.bar = 4
+      a = {
+        'foo' => "blue",
+        'bar' => 4}
       
       Splash::ActsAsScope::Matcher.cast(
         'foo' => 'blue',
@@ -98,23 +96,31 @@ describe Splash::ActsAsScope::Matcher do
     
     it "should support merging in a trivial case" do
       
-      a = Splash::ActsAsScope::Matcher.new('name'=>'Max')
-      b = Splash::ActsAsScope::Matcher.new('age'=>20)
+      a = Splash::ActsAsScope::Matcher.cast('name'=>'Max')
+      b = Splash::ActsAsScope::Matcher.cast('age'=>20)
       
       a_and_b = a.and b
       
-      a_and_b.should == Splash::ActsAsScope::Matcher.new('name'=>'Max','age'=>20)
+      a_and_b.should == Splash::ActsAsScope::Matcher.cast('name'=>'Max','age'=>20)
+      
+      a_or_b = a.or b
+      
+      a_or_b.should == Splash::ActsAsScope::Matcher.cast('$or'=>[{'name'=>'Max'},{'age'=>20}])
       
     end
     
     it "should support merging with overlapping attributes" do
       
-      a = Splash::ActsAsScope::Matcher.new('age'=>{'$lt'=>30})
-      b = Splash::ActsAsScope::Matcher.new('age'=>20)
+      a = Splash::ActsAsScope::Matcher.cast('age'=>{'$lt'=>30})
+      b = Splash::ActsAsScope::Matcher.cast('age'=>20)
       
       a_and_b = a.and b
+      # TODO: this works but 'age'=>{'$lt'=>30} would be a much better result!
+      a_and_b.should == Splash::ActsAsScope::Matcher.cast('age'=>{'$all'=>[20],'$lt'=>30})
       
-      a_and_b.should == Splash::ActsAsScope::Matcher.new('age'=>{'$all'=>[20],'$lt'=>30})
+      a_or_b = a.or b
+      
+      a_or_b.should == Splash::ActsAsScope::Matcher.cast('$or'=>[{'age'=>{'$lt'=>30}},{'age'=>20}])
       
     end
     

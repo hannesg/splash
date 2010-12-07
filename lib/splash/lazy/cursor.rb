@@ -21,10 +21,22 @@ module Splash
       base.instance_eval do
         if @fields.kind_of? Hash
           result = {}
+          slices = {}
           keys = @fields.keys.sort_by &:length
           rkeys = Set.new
           keys.each do |key|
-            if rkeys.any?{|key2| key2.starts_with? key}
+            puts @fields[key].inspect
+            if @fields[key].kind_of? Hash # this is a slice
+              sl = @fields[key]['$slice']
+              unless sl.kind_of? Array
+                if sl < 0
+                  sl = [sl,-sl]
+                else
+                  sl = [0,sl]
+                end
+              end
+              slices[key] = (sl[0])..(sl[0]+sl[1]-1)
+            elsif rkeys.any?{|key2| key2.starts_with? key}
               raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
             else
               path, sub = DotNotation.pop(key)
@@ -33,6 +45,7 @@ module Splash
               rkeys << key
             end
           end
+          @lazy_arrays = slices
           @lazy_fields = result
         end
       end
@@ -45,9 +58,10 @@ module Splash
     end
 private
     def make_lazy(document)
-      return document unless defined? @lazy_fields
+      return document unless defined?(@lazy_fields) or defined?(@lazy_arrays)
       id = document['_id']
-      if @fields.value?(1) or @fields.none?
+      # transform hashes
+      if @fields.value?(1) or @fields.all?{|f| f.kind_of? Hash}
         @lazy_fields.each do |key,value|
           DotNotation::Enumerator.new(document,key).each do |path,hsh|
             if hsh.kind_of? ::Hash
@@ -65,6 +79,17 @@ private
               hsh.initialize_laziness(@collection,id,path.join('.'))
               hsh.lazify(*value)
             end
+          end
+        end
+      end
+      @lazy_arrays.each do |key,value|
+        DotNotation::Enumerator.new(document,key).each(:iterate_last=>false) do |path,ar|
+          if ar.kind_of? ::Array and ar.size == value.count
+            cp = ar.dup
+            ar.clear
+            ar.extend(Lazy::Array)
+            ar.initialize_laziness(@collection,id,path.join('.'))
+            ar.integrate(value,cp)
           end
         end
       end

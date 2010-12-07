@@ -190,6 +190,134 @@ describe Splash::Lazy do
     }.should == 1
   end
   
+  it "should support lazy inside arrays" do
+    
+    class LazyPosition5
+      
+      include Splash::Embed
+      
+      attribute 'x'
+      
+      attribute 'y'
+      
+    end
+    
+    
+    
+    class LazyTestDocument5
+      
+      include Splash::Document
+      
+      lazy!('positions.y')
+      
+      attribute 'positions', Array.of(LazyPosition5) do
+        default :new
+      end
+      
+    end
+    
+    doc = LazyTestDocument5.new
+    doc.positions << LazyPosition5.new({"x"=>1,"y"=>1})
+    doc.positions << LazyPosition5.new({"x"=>2,"y"=>4})
+    doc.positions << LazyPosition5.new({"x"=>3,"y"=>9})
+    doc.positions << LazyPosition5.new({"x"=>4,"y"=>16})
+    doc.store!
+    
+    Splash::Namespace.debug{
+      f = LazyTestDocument5.collection.find_without_lazy({'_id'=>doc._id},{:fields => {'positions.y'=>1,'positions'=>{'$slice'=>[2,1]}}})
+      puts f.to_a.inspect
+    }
+    
+    Splash::Namespace.count_requests{
+    Splash::Namespace.debug{
+      dd = LazyTestDocument5.first
+      dd.positions.each do |position|
+        position.y.should == position.x**2
+      end
+    }
+    }.should == 5
+  end
+  
+  it "should support lazy arrays" do
+    
+    class LazyTestDocument6
+      
+      include Splash::Document
+      
+      attribute 'comments', Array do
+        default :new
+      end
+      
+    end
+    
+    doc = LazyTestDocument6.new
+    doc.comments = ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    doc.store!
+    
+    loaded = LazyTestDocument6.collection.find({'_id'=>doc._id},{:fields => {'comments'=>{'$slice'=>[2,2]}}}).next_document
+    
+    Splash::Namespace.count_requests{
+      loaded['comments'][2..3].should == ['Third Comment', 'Fourth Comment']
+    }.should == 0
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..3].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment']
+    }.should == 1
+    
+  end
+  
+  it "should support lazy arrays backward" do
+    
+    doc = LazyTestDocument6.new
+    doc.comments = ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    doc.store!
+    
+    loaded = LazyTestDocument6.collection.find({'_id'=>doc._id},{:fields => {'comments'=>{'$slice'=>[-2,2]}}}).next_document
+    
+    Splash::Namespace.count_requests{
+      loaded['comments'][-2..-1].should == ['Fourth Comment','Fifth Comment']
+    }.should == 0
+    Splash::Namespace.count_requests{
+      loaded['comments'][-4..-1].should == ['Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    }.should == 1
+    
+  end
+  
+  it "should support lazy arrays mixed" do
+    
+    doc = LazyTestDocument6.new
+    doc.comments = ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    doc.store!
+    
+    loaded = LazyTestDocument6.collection.find({'_id'=>doc._id},{:fields => {'comments'=>{'$slice'=>[-2,2]}}}).next_document
+    
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..3].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment']
+    }.should == 1
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..10].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    }.should == 1
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..8].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    }.should == 0
+    
+    loaded = LazyTestDocument6.collection.find({'_id'=>doc._id},{:fields => {'comments'=>{'$slice'=>[0,2]}}}).next_document
+    
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..3].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment']
+    }.should == 1
+    Splash::Namespace.count_requests{
+      loaded['comments'][-10..-1].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    }.should == 1
+    Splash::Namespace.count_requests{
+      loaded['comments'][0..8].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
+    }.should == 0
+    
+    loaded = LazyTestDocument6.collection.find({'_id'=>doc._id},{:fields => {'comments'=>{'$slice'=>[0,2]}}}).next_document
+    loaded['comments'].map(&:downcase).should == ['first comment','second comment','third comment', 'fourth comment','fifth comment']
+    
+  end
+  
+  
   it "should be dupable" do
     
     col = Splash::Namespace.default.collection('lazy_test3')

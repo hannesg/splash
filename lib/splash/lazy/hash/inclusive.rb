@@ -51,11 +51,6 @@ module Lazy
       return klon
     end
   
-    def initialize_laziness(collection,id,path)
-      @lazy_collection, @lazy_id, @lazy_path = collection, id, path
-      return self
-    end
-  
     def [](key,load=true)
       if load and lazy?(key)
         self.demand!(key)

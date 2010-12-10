@@ -200,12 +200,23 @@ describe Splash::DotNotation do
         
       }
       result = []
-      Splash::DotNotation::Enumerator.new(x,'a.b.c').map! do |path,obj|
+      x = Splash::DotNotation::Enumerator.new(x,'a.b.c').map! do |path,obj|
         obj.to_sym
       end
       
       x['a']['b'][0]['c'].should == :d
       x['a']['b'][1]['c'].should == :D
+      
+      x = Splash::DotNotation::Enumerator.new(x,'a.b').map!(:iterate_last=>false) do |path,obj|
+        obj.reverse
+      end
+      
+      x['a']['b'].should == [{'c'=>:D},{'c'=>:d}]
+      
+      x = Splash::DotNotation::Enumerator.new(x,'').map! do |path,obj|
+        obj.to_a
+      end
+      x.should == [["a", {"b"=>[{"c"=>:D}, {"c"=>:d}]}]]
       
     end
     

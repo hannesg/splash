@@ -79,17 +79,17 @@ module Splash::DotNotation
             i+=1
           end
         end
+        return object
       elsif future.none?
-        if set
-          raise "Can't set this!"
-        end
-        block.call(history,object)
+        return block.call(history,object)
       elsif future.one?
         return final(object,history,future.first,block,set,options)
       elsif object.kind_of? Hash
         traverse(object[future.first],history + [future.first], future.rest,block, set,options)
+        return object
       else
         traverse(object.send(future.first),history + [future.first], future.rest,block, set,options)
+        return object
       end
     end
     

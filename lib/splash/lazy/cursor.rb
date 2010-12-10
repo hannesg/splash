@@ -54,7 +54,9 @@ module Splash
     def next_document
       d = super
       return nil if d.nil?
-      make_lazy(d)
+      d = make_lazy(d)
+      puts d.inspect
+      return d
     end
 private
     def make_lazy(document)
@@ -63,27 +65,40 @@ private
       # transform hashes
       if @fields.value?(1) or @fields.all?{|f| f.kind_of? Hash}
         @lazy_fields.each do |key,value|
-          DotNotation::Enumerator.new(document,key).each do |path,hsh|
+          document = DotNotation::Enumerator.new(document,key).map! do |path,hsh|
             if hsh.kind_of? ::Hash
-              hsh.extend(Lazy::Hash::Inclusive)
-              hsh.initialize_laziness(Lazy::HashFetcher.new(@collection,id,path.join('.')))
-              hsh.unlazify(*value)
+              puts "made lazy: #{path.join('.')}"
+              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.')),:inclusive)
+              result.hmmm!(hsh)
+              result.unlazify!(*value)
+              result
+              #hsh.extend(Lazy::Hash::Inclusive)
+              #hsh.initialize_laziness(Lazy::HashFetcher.new(@collection,id,path.join('.')))
+              #hsh.unlazify(*value)
+            else
+              hsh
             end
           end
         end
       else
         @lazy_fields.each do |key,value|
-          DotNotation::Enumerator.new(document,key).each do |path,hsh|
+          document = DotNotation::Enumerator.new(document,key).map! do |path,hsh|
             if hsh.kind_of? ::Hash
-              hsh.extend(Lazy::Hash::Exclusive)
-              hsh.initialize_laziness(Lazy::HashFetcher.new(@collection,id,path.join('.')))
-              hsh.lazify(*value)
+              
+              puts "made lazy: #{path.join('.')}"
+              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.')),:exclusive)
+              result.hmmm!(hsh)
+              result.lazify!(*value)
+              result
+            else
+              hsh
             end
           end
         end
       end
+=begin
       @lazy_arrays.each do |key,value|
-        DotNotation::Enumerator.new(document,key).map!(:iterate_last=>false) do |path,ar|
+        document = DotNotation::Enumerator.new(document,key).map!(:iterate_last=>false) do |path,ar|
           if ar.kind_of? ::Array and ar.size == value.count
             result = Lazy::Array.new(Lazy::ArrayFetcher.new(@collection,id,path.join('.')))
             result.integrate(value,ar)
@@ -93,6 +108,7 @@ private
           end
         end
       end
+=end
       return document
     end
     

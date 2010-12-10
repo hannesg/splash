@@ -14,32 +14,194 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require "set"
+require "sync.rb"
 module Splash
-  module Lazy
+module Lazy
+  
+  class Hash < ::Hash
     
-    class Ness
-      def new
-        @@instance ||= super
-      end
-      def self._load(str)
-        self.new
-      end
-      def _store(limit)
-        'lazy'
-      end
-      def inspect
-        '<his royal laziness>'
-      end
-    end
-        
-    HIS_ROYAL_LAZINESS = Ness.new
+    alias_method :present_keys, :keys
+    alias_method :key_present?, :key?
     
-    class Hash
-      
-      autoload_all File.join(File.dirname(__FILE__),'hash')
-      
+    def inspect
+      i = []
+      self.present_keys.each do |k|
+        i << "#{k.inspect} => #{self[v].inspect}"
+      end
+      i << " ... and more "
+      return '{' + i.join(', ') + '}'
     end
     
+    def deep_clone
+      result = Lazy::Hash.new(@fetcher,lazy_mode)
+      self.present_keys.each do |k|
+        result[k.deep_clone] = self[k].deep_clone
+      end
+      @lazy_keys.each do |k,v|
+        if v
+          result.lazify!(k)
+        else
+          result.unlazify!(k)
+        end
+      end
+      return result
+    end
+    
+    def each
+      self.complete!
+      return super
+    end
+    
+    def key?(key)
+      self.demand!(key)
+      return super
+    end
+    
+    def keys
+      self.complete!
+      super
+    end
+    
+    def [](key)
+      self.demand!(key)
+      return super
+    end
+    
+    def []=(key,value)
+      self.unlazify!(key)
+      return super
+    end
+    
+    def delete(key)
+      self.unlazify!(key)
+      return super
+    end
+    
+    def values_at(*keys)
+      self.demand!(*keys)
+      return super
+    end
+    
+    def slice(*keys)
+      self.demand!(*keys)
+      return super
+    end
+    
+    def complete?
+      @lazy_complete
+    end
+    
+    def initialize(fetcher, mode=:exclusive)
+      @fetcher = fetcher
+      @lazy_complete = false
+      @lazy_keys = ::Hash.new
+      @lazy_sync = Sync.new
+      self.lazy_mode = mode
+      return self
+    end
+    
+    def lazy_mode
+      return @lazy_keys.default ? :exclusive : :inclusive
+    end
+    
+    def lazy_mode=(mode)
+      @lazy_sync.synchronize(Sync::SH) do
+        @lazy_keys.default = mode==:exclusive
+      end
+    end
+    
+    def demand!(*keys)
+      return if complete?
+      @lazy_sync.synchronize(Sync::EX) do
+        keys = keys.select{|k| self.lazy? k }
+        return if keys.none?
+        result = @fetcher.slice(*keys)
+        if result.available?
+          keys.each do |k|
+            if result.key? k
+              self[k] = result[k]
+            else
+              self.delete(k)
+            end
+          end
+        else
+          self.complete = true
+        end
+        #self.unlazify!(*keys)
+      end
+    end
+    
+    def lazy?(key)
+      return false if complete?
+      @lazy_sync.synchronize(Sync::SH) do
+        return false if complete?
+        #return false if self.key_present? key
+        return @lazy_keys[key]
+      end
+    end
+    
+    def complete!
+      return if complete?
+      @lazy_sync.synchronize(Sync::EX) do
+        return if complete?
+        result = @fetcher.all
+        if result.available?
+          result.each do |k,v|
+            self[k] = v
+          end
+        end
+        self.complete = true
+      end
+    end
+    
+    def lazify!(*keys)
+      return if complete?
+      @lazy_sync.synchronize(Sync::SH) do
+        return if complete?
+        keys.flatten.each do |key|
+          @lazy_keys[key] = true
+        end
+      end
+    end
+    
+    def unlazify!(*keys)
+      return if complete?
+      @lazy_sync.synchronize(Sync::SH) do
+        return if complete?
+        keys.flatten.each do |key|
+          @lazy_keys[key] = false
+        end
+      end
+    end
+    
+    def hmmm!(result)
+      @lazy_sync.synchronize(Sync::EX) do
+        result.each do |k,v|
+          self[k] = v
+        end
+      end
+    end
+    
+    def integrate!(keys,result)
+      @lazy_sync.synchronize(Sync::EX) do
+        keys.each do |k|
+          if result.key? k
+            self[k] = result[k]
+          else
+            self.delete(k)
+          end
+        end
+      end
+    end
+    
+protected
+    def complete=(c)
+      @lazy_complete = c
+      if c
+        @lazy_keys.clear
+      end
+    end
   end
+  
+end
 end

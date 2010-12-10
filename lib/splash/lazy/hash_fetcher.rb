@@ -17,7 +17,15 @@
 module Splash
 module Lazy
   class HashFetcher < Fetcher
-    def [](*keys)
+    
+    def [](key)
+      result = self.slice(key)
+      return ::NA unless result.available?
+      return ::NA unless result.key? key
+      return result[key]
+    end
+    
+    def slice(*keys)
       keys = keys.flatten
       return {} if keys.none?
       

@@ -66,7 +66,7 @@ private
           DotNotation::Enumerator.new(document,key).each do |path,hsh|
             if hsh.kind_of? ::Hash
               hsh.extend(Lazy::Hash::Inclusive)
-              hsh.initialize_laziness(collection,id,path.join('.'))
+              hsh.initialize_laziness(Lazy::HashFetcher.new(@collection,id,path.join('.')))
               hsh.unlazify(*value)
             end
           end
@@ -76,20 +76,20 @@ private
           DotNotation::Enumerator.new(document,key).each do |path,hsh|
             if hsh.kind_of? ::Hash
               hsh.extend(Lazy::Hash::Exclusive)
-              hsh.initialize_laziness(@collection,id,path.join('.'))
+              hsh.initialize_laziness(Lazy::HashFetcher.new(@collection,id,path.join('.')))
               hsh.lazify(*value)
             end
           end
         end
       end
       @lazy_arrays.each do |key,value|
-        DotNotation::Enumerator.new(document,key).each(:iterate_last=>false) do |path,ar|
+        DotNotation::Enumerator.new(document,key).map!(:iterate_last=>false) do |path,ar|
           if ar.kind_of? ::Array and ar.size == value.count
-            cp = ar.dup
-            ar.clear
-            ar.extend(Lazy::Array)
-            ar.initialize_laziness(@collection,id,path.join('.'))
-            ar.integrate(value,cp)
+            result = Lazy::Array.new(Lazy::ArrayFetcher.new(@collection,id,path.join('.')))
+            result.integrate(value,ar)
+            result
+          else
+            ar
           end
         end
       end

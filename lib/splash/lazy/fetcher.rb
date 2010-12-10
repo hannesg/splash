@@ -14,31 +14,31 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require "set"
 module Splash
-  module Lazy
+  class Lazy::Fetcher
     
-    class Ness
-      def new
-        @@instance ||= super
-      end
-      def self._load(str)
-        self.new
-      end
-      def _store(limit)
-        'lazy'
-      end
-      def inspect
-        '<his royal laziness>'
-      end
+    def initialize(collection,id,path,slices={})
+      @collection, @id, @path, @slices = collection, id, path, slices
     end
-        
-    HIS_ROYAL_LAZINESS = Ness.new
     
-    class Hash
-      
-      autoload_all File.join(File.dirname(__FILE__),'hash')
-      
+    def [](*args)
+      raise "This method is abstract. Please implement `[]` on #{self.to_s}."
+    end
+    
+    def all
+      docs = @collection.find_without_lazy({'_id'=>@id},{:fields=>field_slices({@path => 1})})
+      if docs.has_next?
+        return self.get_result(docs.next_document)
+      end
+      return ::NA
+    end
+protected
+    def field_slices(base)
+      return base
+    end
+    
+    def get_result(doc)
+      DotNotation.get(doc,@path)
     end
     
   end

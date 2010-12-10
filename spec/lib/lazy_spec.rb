@@ -297,6 +297,8 @@ describe Splash::Lazy do
       loaded['comments'][0..10].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
     }.should == 1
     Splash::Namespace.count_requests{
+      puts loaded['comments'][0..8].kind_of? Splash::Lazy::Array
+      
       loaded['comments'][0..8].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
     }.should == 0
     

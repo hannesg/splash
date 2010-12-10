@@ -14,32 +14,26 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require "set"
 module Splash
-  module Lazy
+module Lazy
+  class ArrayFetcher < Fetcher
     
-    class Ness
-      def new
-        @@instance ||= super
+    def [](*args)
+      start, length = args
+      if start.kind_of? Range
+        length = start.count
+        start = start.begin
       end
-      def self._load(str)
-        self.new
+      if length.nil?
+        length = 1
       end
-      def _store(limit)
-        'lazy'
+      docs = @collection.find_without_lazy({'_id'=>@id},{:fields=>field_slices({'_id'=>1,@path => {'$slice'=>[start,length]}})})
+      if docs.has_next?
+        return self.get_result(docs.next_document)
       end
-      def inspect
-        '<his royal laziness>'
-      end
-    end
-        
-    HIS_ROYAL_LAZINESS = Ness.new
-    
-    class Hash
-      
-      autoload_all File.join(File.dirname(__FILE__),'hash')
-      
+      return ::NA
     end
     
   end
+end
 end

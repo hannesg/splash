@@ -14,32 +14,20 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require "set"
 module Splash
-  module Lazy
-    
-    class Ness
-      def new
-        @@instance ||= super
-      end
-      def self._load(str)
-        self.new
-      end
-      def _store(limit)
-        'lazy'
-      end
-      def inspect
-        '<his royal laziness>'
-      end
-    end
-        
-    HIS_ROYAL_LAZINESS = Ness.new
-    
-    class Hash
+module Lazy
+  class HashFetcher < Fetcher
+    def [](*keys)
+      keys = keys.flatten
+      return {} if keys.none?
       
-      autoload_all File.join(File.dirname(__FILE__),'hash')
-      
+      fields = keys.inject({}){|memo,k| memo[DotNotation.join(@path,k)]=1; memo }
+      docs = @collection.find_without_lazy({'_id'=>@id},{:fields=>field_slices(fields)})
+      if docs.has_next?
+        return self.get_result(docs.next_document)
+      end
+      return ::NA
     end
-    
   end
+end
 end

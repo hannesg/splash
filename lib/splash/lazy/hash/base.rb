@@ -17,13 +17,13 @@
 require "set"
 module Splash
 module Lazy
-  module Hash::Base
+  module Hash::Base #< ::Hash
     def complete?
       @lazy_complete
     end
     
-    def initialize_laziness(collection,id,path)
-      @lazy_collection, @lazy_id, @lazy_path = collection, id, path
+    def initialize_laziness(fetcher)
+      @fetcher = fetcher
       return self
     end
     
@@ -32,21 +32,16 @@ module Lazy
       @lazy_mutex.synchronize do
         keys = keys.select{|k| self.lazy? k }
         return if keys.none?
-        fields = keys.inject({}){|memo,k| memo[DotNotation.join(@lazy_path,k)]=1; memo }
-        docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>(fields)})
-        if docs.has_next?
-          doc = docs.next_document
-          result = DotNotation.get(doc,@lazy_path)
-          if result.available?
-            keys.each do |k|
-              if result.key? k
-                self[k] = result[k]
-              else
-                self.delete(k)
-              end
+        result = @fetcher[keys]
+        if result.available?
+          keys.each do |k|
+            if result.key? k
+              self[k] = result[k]
+            else
+              self.delete(k)
             end
-            return ;
           end
+          return ;
         end
         unlazify(*keys)
       end
@@ -56,13 +51,9 @@ module Lazy
       return if complete?
       @lazy_mutex.synchronize do
         return if complete?
-        docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{@lazy_path => 1}})
-        if docs.has_next?
-          doc = docs.next_document
-          result = DotNotation.get(doc,@lazy_path)
-          if result.available?
-            self.reverse_merge!(result)
-          end
+        result = @fetcher.all
+        if result.available?
+          self.reverse_merge!(result)
         end
         @lazy_complete = true
       end

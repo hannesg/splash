@@ -15,10 +15,10 @@
 #    (c) 2010 by Hannes Georg
 #
 module Splash
-  module Lazy::Array
+  class Lazy::Array < Array
     
     def [](*args)
-      return super if complete?
+      #return super if complete?
       raise "[] expects at least one argument, but none given" if args.none?
       start, length = args
       unless( length.nil? )
@@ -26,7 +26,7 @@ module Splash
       end
       if( start.kind_of? Range )
         self.demand!(start)
-        result = []
+        result = ::Array.new
         normalize(start).each do |i|
           result << @lazy_values[i] if @lazy_values.key? i
         end
@@ -102,13 +102,13 @@ end
 RB
     end
     
-    def initialize_laziness(collection,id,path)
-      @lazy_collection, @lazy_id, @lazy_path = collection, id, path
+    def initialize(fetcher)
+      super()
+      @fetcher = fetcher
       @lazy_values, @lazy_mutex = Hash.new, Mutex.new
       @lazy_complete = false
       @lazy_length = nil
-      #self.slice!(0,self.size) # clear self
-      return self
+      #return self
     end
     
     def complete?
@@ -156,17 +156,14 @@ RB
     
     def complete!
       return if complete?
+      if @lazy_mutex.nil?
+        @lazy_mutex
+      end
       @lazy_mutex.synchronize do
         return if complete?
-        docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{'_id'=>1,@lazy_path => 1}})
-        if docs.has_next?
-          doc = docs.next_document
-          result = DotNotation.get(doc,@lazy_path)
-          if result.available?
-            @lazy_length = result.size
-            self.integrate(0...(result.size), result)
-          end
-        end
+        #fetcher = Lazy::ArrayFetcher.new(@lazy_collection,@lazy_id,@lazy_path,{})
+        result = @fetcher.all
+        self.integrate(0..result.size,result)
         @lazy_complete = true
       end
     end
@@ -200,14 +197,17 @@ RB
         # require 
         unless min.nil? or max.nil?
           # load
-          docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{'_id'=>1,@lazy_path => {'$slice'=>[min,max-min+1]}}})
-          if docs.has_next?
-            doc = docs.next_document
-            result = DotNotation.get(doc,@lazy_path)
-            if result.available?
-              self.integrate(min..max,result)
-            end
-          end
+          #fetcher = Lazy::ArrayFetcher.new(@lazy_collection,@lazy_id,@lazy_path,[])
+          result = @fetcher[min..max]
+          self.integrate(min..max,result)
+          #docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{'_id'=>1,@lazy_path => {'$slice'=>[min,max-min+1]}}})
+          #if docs.has_next?
+          #  doc = docs.next_document
+          #  result = DotNotation.get(doc,@lazy_path)
+          #  if result.available?
+          #    self.integrate(min..max,result)
+          #  end
+          #end
         end
       end
     end

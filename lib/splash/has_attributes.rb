@@ -47,19 +47,19 @@ module Splash
       
       # this is a brain transplantation!
       def load_raw(raw)
-        #@sync.synchronize(Sync::EX){
+        @sync.synchronize(Sync::EX){
           flush!
           @raw = raw
-        #}
+        }
       end
       
       def [](key)
-        #@sync.synchronize(Sync::SH){
+        @sync.synchronize(Sync::SH){
         return ::NA if( @deleted_keys.include? key )
         return super if( self.key? key )
           
-          #@sync.synchronize(Sync::EX){
-            #return super if( self.key? key )
+          @sync.synchronize(Sync::EX){
+            return super if( self.key? key )
             if( @raw.key? key )
               value = @class.attribute_persister(key).from_saveable(@raw[key])
             else
@@ -72,8 +72,8 @@ module Splash
               @deleted_keys.delete key
             end
             return value
-          #}
-        #}
+          }
+        }
       end
       
       def key?(k)
@@ -82,14 +82,14 @@ module Splash
       end
       
       def []=(key,value)
-        #@sync.synchronize(Sync::EX){
+        @sync.synchronize(Sync::EX){
           if ::NA == value
             self.delete(key)
           else
             self.write(key,value)
             @deleted_keys.delete key
           end
-        #}
+        }
       end
       
       def delete(key)

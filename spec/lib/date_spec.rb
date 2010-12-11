@@ -87,7 +87,7 @@ describe "Time" do
       
       tp.store!
       # mongodb only stores milli seconds, not micro seconds
-      TestPost3.first.created_at.should be_close(date,0.001)
+      TestPost3.first.created_at.should be_within(0.001).of(date)
     
     end
     

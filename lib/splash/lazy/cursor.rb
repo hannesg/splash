@@ -24,8 +24,9 @@ module Splash
           slices = {}
           keys = @fields.keys.sort_by &:length
           rkeys = Set.new
+          @lazy_slices = {}
           keys.each do |key|
-            puts @fields[key].inspect
+            #puts @fields[key].inspect
             if @fields[key].kind_of? Hash # this is a slice
               sl = @fields[key]['$slice']
               unless sl.kind_of? Array
@@ -36,6 +37,7 @@ module Splash
                 end
               end
               slices[key] = (sl[0])..(sl[0]+sl[1]-1)
+              @lazy_slices[key] = sl[0]
             elsif rkeys.any?{|key2| key2.starts_with? key}
               raise "Nesting lazy/eager fields is currently not support by MongoDB, so we didn't implented it."
             else
@@ -55,7 +57,7 @@ module Splash
       d = super
       return nil if d.nil?
       d = make_lazy(d)
-      puts d.inspect
+      #puts d.inspect
       return d
     end
 private
@@ -67,8 +69,8 @@ private
         @lazy_fields.each do |key,value|
           document = DotNotation::Enumerator.new(document,key).map! do |path,hsh|
             if hsh.kind_of? ::Hash
-              puts "made lazy: #{path.join('.')}"
-              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.')),:inclusive)
+              #puts "made inclusive lazy: #{path.join('.')}"
+              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.'),@lazy_slices),:inclusive)
               result.hmmm!(hsh)
               result.unlazify!(*value)
               result
@@ -79,14 +81,14 @@ private
               hsh
             end
           end
+          raise "Document must be a hash! Last key #{key}" unless document.kind_of? Hash
         end
       else
         @lazy_fields.each do |key,value|
           document = DotNotation::Enumerator.new(document,key).map! do |path,hsh|
             if hsh.kind_of? ::Hash
-              
-              puts "made lazy: #{path.join('.')}"
-              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.')),:exclusive)
+              #puts "made exclusive lazy: #{path.join('.')}"
+              result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.'),@lazy_slices),:exclusive)
               result.hmmm!(hsh)
               result.lazify!(*value)
               result
@@ -94,13 +96,13 @@ private
               hsh
             end
           end
+          raise "Document must be a hash! Last key #{key}" unless document.kind_of? Hash
         end
       end
-=begin
       @lazy_arrays.each do |key,value|
         document = DotNotation::Enumerator.new(document,key).map!(:iterate_last=>false) do |path,ar|
           if ar.kind_of? ::Array and ar.size == value.count
-            result = Lazy::Array.new(Lazy::ArrayFetcher.new(@collection,id,path.join('.')))
+            result = Lazy::Array.new(Lazy::ArrayFetcher.new(@collection,id,path.join('.'),@lazy_slices))
             result.integrate(value,ar)
             result
           else
@@ -108,7 +110,6 @@ private
           end
         end
       end
-=end
       return document
     end
     

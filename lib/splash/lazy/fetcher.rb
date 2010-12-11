@@ -18,7 +18,24 @@ module Splash
   class Lazy::Fetcher
     
     def initialize(collection,id,path,slices={})
-      @collection, @id, @path, @slices = collection, id, path, slices
+      @collection, @id = collection, id
+      
+      real_path = []
+      @slices = {}
+      fetch_path = []
+      DotNotation.parse_path(path).each do |part|
+        if part.kind_of? Numeric
+          current_path = real_path.join('.')
+          part += slices[current_path] if slices.key? current_path
+          @slices[current_path] = {'$slice'=>[part,1]}
+          fetch_path << 0
+        else
+          real_path << part
+          fetch_path << part
+        end
+      end
+      @path = real_path.join('.')
+      @fetch_path = fetch_path.join('.')
     end
     
     def [](*args)
@@ -34,11 +51,11 @@ module Splash
     end
 protected
     def field_slices(base)
-      return base
+      return base.merge(@slices)
     end
     
     def get_result(doc)
-      DotNotation.get(doc,@path)
+      DotNotation.get(doc,@fetch_path)
     end
     
   end

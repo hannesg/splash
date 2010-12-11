@@ -47,7 +47,8 @@ module Splash::DotNotation
         o = object.send(key)
       end
       if options[:iterate_last] and o.kind_of? Array
-        return traverse(o,history + [key],[],block,set,options)
+        traverse(o,history + [key],[],block,set,options)
+        return o
       end
       value = block.call(history + [key],o)
       if set
@@ -83,7 +84,8 @@ module Splash::DotNotation
       elsif future.none?
         return block.call(history,object)
       elsif future.one?
-        return final(object,history,future.first,block,set,options)
+        final(object,history,future.first,block,set,options)
+        return object
       elsif object.kind_of? Hash
         traverse(object[future.first],history + [future.first], future.rest,block, set,options)
         return object

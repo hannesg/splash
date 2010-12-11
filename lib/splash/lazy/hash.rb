@@ -26,9 +26,9 @@ module Lazy
     def inspect
       i = []
       self.present_keys.each do |k|
-        i << "#{k.inspect} => #{self[v].inspect}"
+        i << "#{k.inspect} => #{self[k].inspect}"
       end
-      i << " ... and more "
+      i << " lazy:#{@lazy_keys.inspect}, all_other: #{@lazy_keys.default} "
       return '{' + i.join(', ') + '}'
     end
     
@@ -101,12 +101,12 @@ module Lazy
     end
     
     def lazy_mode
-      return @lazy_keys.default ? :exclusive : :inclusive
+      return @lazy_keys.default ? :inclusive : :exclusive
     end
     
     def lazy_mode=(mode)
       @lazy_sync.synchronize(Sync::SH) do
-        @lazy_keys.default = mode==:exclusive
+        @lazy_keys.default = mode==:inclusive
       end
     end
     

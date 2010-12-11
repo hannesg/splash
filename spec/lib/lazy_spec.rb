@@ -220,19 +220,17 @@ describe Splash::Lazy do
     doc.positions << LazyPosition5.new({"x"=>3,"y"=>9})
     doc.positions << LazyPosition5.new({"x"=>4,"y"=>16})
     doc.store!
-    
+=begin
     Splash::Namespace.debug{
       f = LazyTestDocument5.collection.find_without_lazy({'_id'=>doc._id},{:fields => {'positions.y'=>1,'positions'=>{'$slice'=>[2,1]}}})
-      puts f.to_a.inspect
+     
     }
-    
+=end
     Splash::Namespace.count_requests{
-    Splash::Namespace.debug{
       dd = LazyTestDocument5.first
       dd.positions.each do |position|
         position.y.should == position.x**2
       end
-    }
     }.should == 5
   end
   
@@ -295,7 +293,7 @@ describe Splash::Lazy do
       loaded['comments'][0..10].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
     }.should == 1
     Splash::Namespace.count_requests{
-      puts loaded['comments'][0..8].kind_of? Splash::Lazy::Array
+      #puts loaded['comments'][0..8].kind_of? Splash::Lazy::Array
       
       loaded['comments'][0..8].should == ['First Comment','Second Comment','Third Comment', 'Fourth Comment','Fifth Comment']
     }.should == 0

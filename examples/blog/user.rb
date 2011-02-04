@@ -45,10 +45,6 @@ class User
     Post.where('author'=>self)
   end
   
-  def comments
-    Comment.where('author'=>self)
-  end
-  
   PostStat = Splash::MapReduce[Post,<<MAP,<<REDUCE]
   function(){
     emit(this.author,{count:1,avg_rating:this.rating});

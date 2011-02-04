@@ -99,4 +99,27 @@ class Splash::Attribute
     value
   end
   
+  def alias_for(name)
+    
+  end
+  
+  def method_missing(meth, *args, &block)
+    nm = 'attribute_' + meth.to_s
+    puts @class.inspect
+    if @class.respond_to? nm
+      return @class.send(nm,@name,*args,&block)
+    else
+      super
+    end
+  end
+  
+  def respond_to?(meth, include_private=false)
+    nm = 'attribute_' + meth.to_s
+    if @class.respond_to? nm
+      return true
+    else
+      super
+    end
+  end
+  
 end

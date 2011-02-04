@@ -15,27 +15,28 @@
 #    (c) 2010 by Hannes Georg
 #
 module Splash
-module Lazy
-  class ArrayFetcher < Fetcher
+  module HasEmbededCollections
     
-    def [](*args)
-      start, length = args
-      if start.kind_of? Range
-        length = start.count
-        start = start.begin
+    extend Concerned
+    
+    module ClassMethods
+      
+      def embeds(name,options={})
+        klass = options[:class] #|| self.collection.embed(name)
+        self.send(:define_method,name.to_sym) do
+          thiz = self
+          value = super || []
+          Class.new(klass) do
+            collection thiz.class.collection.embed(name).slice(thiz._id,value)
+            writeback! do |doc|
+              doc._owner = thiz._dbref
+            end
+          end
+        end
       end
-      if length.nil?
-        length = 1
-      end
-      docs = @collection.find_without_lazy({'_id'=>@id},{:fields=>field_slices({'_id'=>1,@path => {'$slice'=>[start,length]}})})
-      if docs.has_next?
-        return self.get_result(docs.next_document)
-      end
-      return ::NA
     end
     
-    alias_method :to_a, :all
+    
     
   end
-end
 end

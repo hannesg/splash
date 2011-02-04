@@ -18,9 +18,9 @@ module Splash
   
   class Collection < Mongo::Collection
   
-    def initialize(namespace,name)
+    def initialize(name, namespace)
       @namespace = namespace
-      super(namespace.db,name)
+      super(name, namespace.db)
     end
     
     def [](name)
@@ -35,7 +35,12 @@ module Splash
      a = Marshal.load(str)
      return Splash::Namespace::NAMESPACES[a[0]].collection(a[1])
     end
-  
+    
+    alias_method :find_document, :find_one
+    
+    def embed(path)
+      return EmbededCollection.new(path,self)
+    end
     
   
   end

@@ -23,141 +23,6 @@ module Splash
     ATTRIBUTE_SETTER_REGEXP = /^([a-zA-Z_]+)=$/.freeze
     ATTRIBUTE_QUERY_REGEXP = /^([a-zA-Z_]+)\?$/.freeze
     
-    class Attributes < BSON::OrderedHash
-      
-      include HasAttributes::GeneratesUpdates
-      
-      alias_method :read, :[]
-      alias_method :write, :[]=
-      
-      def load(attrs)
-        attrs.each do |key,value|
-          self[key]=value
-        end
-      end
-      
-      def dirty?(key)
-        return true if @deleted_keys.include? key
-        return self.key? key
-      end
-      
-      def clean?(key)
-        !dirty?(key)
-      end
-      
-      # this is a brain transplantation!
-      def load_raw(raw)
-        @sync.synchronize(Sync::EX){
-          flush!
-          @raw = raw
-        }
-      end
-      
-      def [](key)
-        @sync.synchronize(Sync::SH){
-        return ::NA if( @deleted_keys.include? key )
-        return super if( self.key? key )
-          
-          @sync.synchronize(Sync::EX){
-            return super if( self.key? key )
-            if( @raw.key? key )
-              value = @class.attribute_persister(key).from_saveable(@raw[key])
-            else
-              value = @class.attribute_default(key)
-            end
-            if ::NA == value
-              self.delete(key)
-            else
-              self.write(key,value)
-              @deleted_keys.delete key
-            end
-            return value
-          }
-        }
-      end
-      
-      def key?(k)
-        return false if @deleted_keys.include? k
-        return super
-      end
-      
-      def []=(key,value)
-        @sync.synchronize(Sync::EX){
-          if ::NA == value
-            self.delete(key)
-          else
-            self.write(key,value)
-            @deleted_keys.delete key
-          end
-        }
-      end
-      
-      def delete(key)
-        super
-        @deleted_keys << key
-      end
-      
-      def initialize(klass)
-        super()
-        @class = klass
-        @raw = {}
-        @sync = Sync::Dummy.new
-        @deleted_keys = Set.new
-        #complete!
-      end
-      
-      def raw
-        return write_into!(@raw.deep_clone)
-      end
-      
-      def type(key)
-        return @class.attribute(key)
-      end
-      
-      def each
-        @sync.synchronize(Sync::SH){
-          super
-        }
-      end
-      
-      def write_back!
-        @sync.synchronize(Sync::EX){
-          write_into!(@raw)
-          @deleted_keys.clear
-        }
-        return self
-      end
-      
-      protected
-        def complete!
-          keys = Set.new
-          matcher = /^attribute_([a-z_]+)_default$/
-          @class.methods do |meth|
-            if match = matcher.match(meth.to_s)
-              a = match.to_a
-              unless @not_given.include?(a[1]) or self.key?(a[1])
-                self[a[1]]=@class.send(meth)
-              end
-            end
-          end
-          return self
-        end
-        
-        def flush!
-          self.replace({})
-        end
-        
-        def write_into!(target={})
-          self.each do |key,value|
-            target[key]=@class.attribute_persister(key).to_saveable(value)
-          end
-          @deleted_keys.each do |key|
-            target.delete(key)
-          end
-          return target
-        end
-    end
-    
     extend Concerned
     extend Combineable
     
@@ -169,7 +34,6 @@ module Splash
         end
       end
     end
-    
     
     def attributes
       @attributes ||= Attributes.new(self.class)
@@ -216,15 +80,20 @@ module Splash
     
     module ClassMethods
       
-      def attribute_accessor(name)
+      def alias_attribute(aliaz,real)
+        attribute_accessor(aliaz,real)
+      end
+      
+      def attribute_accessor(name,real_name=name)
         self.class_eval <<-CODE, __FILE__, __LINE__
-def #{name.to_s}() return attributes[#{name.to_s.inspect}] end
-def #{name.to_s}=(value) return attributes[#{name.to_s.inspect}] = value end
+def #{name.to_s}() return attributes[#{real_name.to_s.inspect}] end
+def #{name.to_s}=(value) return attributes[#{real_name.to_s.inspect}] = value end
+def #{name.to_s}?() return attributes.key? #{real_name.to_s.inspect} end
 CODE
       end
       
       def attribute_class
-        @attribute_class ||= Class.new(Splash::Attribute)
+        Splash::Attribute
       end
       
       def attribute(name,*args,&block)

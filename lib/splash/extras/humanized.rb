@@ -14,28 +14,11 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-module Splash
-module Lazy
-  class ArrayFetcher < Fetcher
-    
-    def [](*args)
-      start, length = args
-      if start.kind_of? Range
-        length = start.count
-        start = start.begin
-      end
-      if length.nil?
-        length = 1
-      end
-      docs = @collection.find_without_lazy({'_id'=>@id},{:fields=>field_slices({'_id'=>1,@path => {'$slice'=>[start,length]}})})
-      if docs.has_next?
-        return self.get_result(docs.next_document)
-      end
-      return ::NA
-    end
-    
-    alias_method :to_a, :all
-    
+require "humanized.rb"
+class Splash::Attribute
+  
+  def _(*args,&block)
+    ( @class._(:attributes, @name.to_sym) | @type._ )._(*args, &block)
   end
-end
+  
 end

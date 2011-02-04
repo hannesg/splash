@@ -65,7 +65,7 @@ describe Splash::HasConstraints do
     
     result.should be_error
     
-    result['baz'].errors.should_not be_empty
+    result['baz']['foo'].errors.should_not be_empty
     
   end
   
@@ -103,6 +103,13 @@ describe Splash::HasConstraints do
         end
       end
       
+      validate('age') do |age|
+        if age.kind_of? Numeric and age > 50
+          errors << 'Altersdiskriminierung!'
+        end
+        
+      end
+      
     end
     
     o = ChildObjectWithConstraints.new
@@ -112,6 +119,14 @@ describe Splash::HasConstraints do
     o.baz.foo = "bar"
     
     o.age = 17
+    
+    result = o.validate
+    
+    result.should be_error
+    
+    result['age'].errors.should_not be_empty
+    
+    o.age = 51
     
     result = o.validate
     

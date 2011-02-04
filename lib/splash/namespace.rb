@@ -137,8 +137,6 @@ module Splash
         rescue Mongo::OperationFailure
         end
       end
-      #@top_classes.clear
-      #@class_collection_map.clear
       return true
     end
     
@@ -168,15 +166,24 @@ module Splash
         return collection_to_class_name(collection_name).split('::').inject(Kernel) do |memo,obj|
           memo.const_get(obj)
         end
-      catch NameError => e
+      rescue NameError => e
         raise ClassNotFound.new('No Class found for ' + collection_name +'. Error received: ' + e.message)
       end
     end
     
     def dereference(dbref)
       begin
-        klass = self.class_for(dbref.namespace) 
-        return klass.eigenpersister.from_saveable( @db.dereference(dbref) )
+        klass = self.class_for(dbref.namespace)
+        return klass.eigenpersister.from_saveable( klass.collection.find_document(dbref.object_id) )
+      rescue ClassNotFound => e
+        warn e.message
+      end
+    end
+    
+    def raw_dereference(dbref)
+      begin
+        collection = self.collection(dbref.namespace)
+        return collection.find_document(dbref.object_id)
       rescue ClassNotFound => e
         warn e.message
       end
@@ -185,7 +192,11 @@ module Splash
     attr_reader :db
     
     def collection(name)
-      Splash::Collection.new(self,name)#@db.collection(name)
+      if name.include? ':'
+        base, path = name.split(':')
+        return Splash::EmbededCollection.new(path, self.collection(base))
+      end
+      Splash::Collection.new(name, self)#@db.collection(name)
     end
   end
 end

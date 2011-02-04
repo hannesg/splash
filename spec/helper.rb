@@ -19,6 +19,8 @@ require "bundler/setup"
 
 Bundler.require(:default,:development)
 
+require "mongo"
+
 Splash::Namespace.default = Splash::Namespace.new('mongodb://localhost/splash-testing')
 Splash::Lazy::Collection.invade!
 

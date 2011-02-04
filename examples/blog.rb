@@ -31,9 +31,14 @@ autoload :Comment, "blog/comment"
 
 admin = User.new('name' => 'Admin', 'active' => true).store!
 
-admin.posts.new( 'title' => 'Why are memory leaks so ugly?', 'body' => 'because they suck!' , 'rating' => 2).store!
+user = User.new('name'=>'User','active'=>true).store!
 
-admin.posts.new( 'title' => 'What to post next?', 'body' => 'no idea' , 'rating' => -1).store!
+p1 = admin.posts.new( 'title' => 'Why are memory leaks so ugly?', 'body' => 'because they suck!' , 'rating' => 2).store!
+
+p2 = admin.posts.new( 'title' => 'What to post next?', 'body' => 'no idea' , 'rating' => -1).store!
+
+c1 = p1.comments.new('comment'=>'I like them.','author'=>user).store!
+#puts c1.inspect#.store!
 
 temp = Post.map_reduce <<MAP,<<REDUCE
   function(){
@@ -50,6 +55,8 @@ MAP
     return result;
   }
 REDUCE
+
+puts Post.to_a.inspect
 
 10.times do
   # retrive some things

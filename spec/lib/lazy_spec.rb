@@ -232,6 +232,26 @@ describe Splash::Lazy do
         position.y.should == position.x**2
       end
     }.should == 5
+    
+    #Splash::Namespace.debug do
+    
+    #puts Splash::Lazy.demand!(LazyTestDocument5.eager('positions.y').first.to_raw).inspect
+    
+    #end
+    
+    dd = LazyTestDocument5.first
+    #puts dd.attributes.raw.inspect
+    dd.positions[2].y = 10
+    #puts dd.attributes.raw.inspect
+    #Splash::Namespace.debug do
+    dd.save!
+    #end
+    
+    #puts Splash::Lazy.demand!(LazyTestDocument5.eager('positions.y').first.to_raw).inspect
+    
+    LazyTestDocument5.first.positions[2].y.should == 10
+    LazyTestDocument5.first.positions[1].y.should == 4
+    
   end
   
   it "should support lazy arrays" do

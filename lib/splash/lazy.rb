@@ -42,13 +42,29 @@ module Splash
     def self.insert(model,id,document,fields)
       options = self.build_lazy_options(fields)
       options.each do |key,value|
-        #puts value.inspect
         DotNotation::Enumerator.new(document,key).map! do |path,old|
-          #puts "path lazied: #{path} (was: #{old.inspect})"
           Lazy::FetchPromise.new(model,id,path.join('.'),value)
         end
       end
       return document
+    end
+    
+    def self.demand!(value)
+      if value.kind_of?(::Hash)
+        result = {}
+        value.each do |k,v|
+          result[k] = demand!(v)
+        end
+        return result
+      elsif value.kind_of?(::Array)
+        result = []
+        value.each do |v|
+          result << demand!(v)
+        end
+        return result
+      else
+        return value
+      end
     end
     
   end

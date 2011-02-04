@@ -18,12 +18,23 @@ module Splash
   
   class Constraint::Simple < Constraint
     
-    def initialize(&block)
+    def initialize(path='',&block)
+      @path = path
       @block = block
     end
     
     def validate(object,result)
-      @block.call(object,result)
+      if @block.arity == 2
+        DotNotation::Enumerator.new(object,@path).each do |path,sub|
+          @block.call(sub,DotNotation.get(result,path))
+        end
+      else
+        
+        DotNotation::Enumerator.new(object,@path).each do |path,sub|
+          g = DotNotation.get(result,path)
+          g.instance_exec(sub, &@block)
+        end
+      end
     end
     
   end

@@ -18,8 +18,8 @@ require "set"
 module Splash
   module Constraint::AttributeInterface
     
-    def validate_not_nil
-      @class.validate_not_nil(@name)
+    def attribute_validate(name,&block)
+      self.constraints << Constraint::Simple.new(name,&block)
     end
     
   end

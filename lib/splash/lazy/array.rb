@@ -102,14 +102,21 @@ end
 RB
     end
     
+    def present_indices
+      return @lazy_values.keys
+    end
+    
     def initialize(fetcher)
       super()
       @fetcher = fetcher
       @lazy_values, @lazy_mutex = Hash.new, Mutex.new
       @lazy_complete = false
       @lazy_length = nil
+      @lazy_mapper = nil
       #return self
     end
+    
+    attr_accessor :lazy_mapper
     
     def complete?
       @lazy_complete
@@ -141,9 +148,15 @@ RB
       k = 0
       normalize(subset).each do |i|
         break if k >= values.size
-        @lazy_values[i] = values[k]
-        if i >= 0
-          self[i] = values[k]
+        unless @lazy_values.key? i
+          v = values[k]
+          if @lazy_mapper
+            v = @lazy_mapper.call(v)
+          end
+          @lazy_values[i] = v
+          if i >= 0
+            self[i] = v
+          end
         end
         k += 1
       end
@@ -162,7 +175,7 @@ RB
       @lazy_mutex.synchronize do
         return if complete?
         #fetcher = Lazy::ArrayFetcher.new(@lazy_collection,@lazy_id,@lazy_path,{})
-        result = @fetcher.all
+        result = @fetcher.to_a
         self.integrate(0..result.size,result)
         @lazy_complete = true
       end
@@ -199,7 +212,11 @@ RB
           # load
           #fetcher = Lazy::ArrayFetcher.new(@lazy_collection,@lazy_id,@lazy_path,[])
           result = @fetcher[min..max]
-          self.integrate(min..max,result)
+          if result.available?
+            self.integrate(min..max,result)
+          else
+            @lazy_complete = true
+          end
           #docs = @lazy_collection.find_without_lazy({'_id'=>@lazy_id},{:fields=>{'_id'=>1,@lazy_path => {'$slice'=>[min,max-min+1]}}})
           #if docs.has_next?
           #  doc = docs.next_document

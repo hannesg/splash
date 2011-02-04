@@ -36,6 +36,9 @@ module Lazy
       end
       return ::NA
     end
+    
+    alias_method :to_h, :all
+    
   end
 end
 end

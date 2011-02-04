@@ -25,6 +25,7 @@ module Splash::Document
   include Splash::Callbacks
   include Splash::HasConstraints
   include Splash::UsesTypeAttribute
+  include Splash::HasEmbededCollections
   
   #extend Concerned
   

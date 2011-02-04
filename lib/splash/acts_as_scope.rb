@@ -160,6 +160,8 @@ module Splash
       self.clone.scope_cursor.count
     end
     
+    alias_method :size, :count
+    
     def scope_root?
       false
     end
@@ -175,7 +177,7 @@ module Splash
     def <<(object)
       @scope_options.writeback(object)
       if scope_root?
-        super(object)
+        super(object) if defined? super
       else
         scope_root.<<(object)
         warn "object #{object} was writen to scope #{self} but won't be findable" unless complies_with?(object)

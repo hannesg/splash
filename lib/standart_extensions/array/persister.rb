@@ -21,6 +21,7 @@ class Array
 
     def from_saveable(val)
       return nil if val.nil?
+      return val.map_lazy{|e| @entry_persister.from_saveable(e) }
       nu=@base_class.new
       val.inject(nu){|memo,e|
         memo << @entry_persister.from_saveable(e)
@@ -30,6 +31,9 @@ class Array
     
     def to_saveable(val)
       return nil if val.nil?
+      if val.respond_to? :complete!
+        val.complete!
+      end
       val.inject([]){|memo,e|
         memo << @entry_persister.to_saveable(e)
         memo

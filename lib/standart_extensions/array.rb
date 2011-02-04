@@ -29,4 +29,14 @@ class Array
     return c
   end
   
+  def map_lazy(&block)
+    result = Splash::Lazy::Array.new(self)
+    result.lazy_mapper = block
+    return result
+  end
+  
+  def present_indices
+    0..(size-1)
+  end
+  
 end

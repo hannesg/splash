@@ -18,16 +18,45 @@ module Splash
   
   module HasConstraints
     
-    def self.included(base)
+    def self.validate(object, target = object)
+      result = Splash::Constraint::Result.new
+      object.each_constraints do |constraint|
+        constraint.validate(target,result)
+      end
+      return result
+    end
+    
+    extend Concerned
+    
+    when_included do |base|
       base.merged_inheritable_attr(:constraints)
     end
     
     def validate
       result = Splash::Constraint::Result.new
-      self.class.each_constraints do |constraint|
+      self.each_constraints do |constraint|
         constraint.validate(self,result)
       end
       return result
+    end
+    
+    def validate_object(obj)
+      result = Splash::Constraint::Result.new
+      self.each_constraints do |constraint|
+        constraint.validate(obj,result)
+      end
+      return result
+    end
+    
+    def constraints
+      @constraints ||= []
+    end
+    
+    def each_constraints(&block)
+      if @constraints.respond_to? :each
+        @constraints.each(&block)
+      end
+      self.class.each_constraints &block
     end
     
 protected

@@ -19,10 +19,11 @@ module Splash
     
     def validate(*args,&block)
       if block_given?
-        self.constraints << Constraint::Simple.new(&block)
-      end
-      args.each do |name|
-        self.constraints << Constraint::Callback.new(name)
+        self.constraints << Constraint::Simple.new(*args,&block)
+      else
+        args.each do |name|
+          self.constraints << Constraint::Callback.new(name)
+        end
       end
     end
     

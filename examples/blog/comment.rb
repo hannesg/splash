@@ -18,7 +18,11 @@ class Comment
     
   include Splash::Document
   
-  attribute 'post', Post
+  collection Post.collection.embed('comments')
+  
+  attribute '_owner', Post
+  
+  alias_attribute 'post', '_owner'
   
   attribute 'body', String
   

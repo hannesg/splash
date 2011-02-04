@@ -40,6 +40,11 @@ module Splash
       return self.class.collection.update({'_id'=>self._id},updates)
     end
     
+    def _dbref
+      self.demand_id!
+      return BSON::DBRef.new(self.class.collection.name,self._id)
+    end
+    
     def remove!
       return self.class.collection.remove('_id'=>self._id)
     end
@@ -60,11 +65,10 @@ module Splash
     alias eql? ==
     
     module ClassMethods
-      
       def <<(obj)
+        super(obj) if defined? super
         obj.store!
       end
-      
       def create_index(*args)
         self.collection.create_index(*args)
       end
@@ -97,6 +101,7 @@ module Splash
       end
       
       def eigenpersister
+        return super if defined? super
         return self
       end
       

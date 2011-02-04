@@ -17,18 +17,54 @@
 module Splash::Util
   
   
+  def self.calculate_array_updates(from, to, path='')
+    
+    result = {'$set'=>{},'$unset'=>{}}
+    set = result['$set']
+    unset = result['$unset']
+    
+    findices = ( from.respond_to?(:present_indices) ? from.present_indices : from.indices)
+    tindices = ( to.respond_to?(:present_indices) ? to.present_indices : to.indices)
+    
+    if (findices == tindices) and findices.all?{|i| i >= 0}
+      findices.each do |i|
+        tvalue = to[i]
+        fvalue = from[i]
+        if tvalue.kind_of? Hash and fvalue.kind_of? Hash
+          sub = self.calculate_updates(fvalue,tvalue, Splash::DotNotation.join(path,i.to_s) )
+          set.update( sub['$set'] )
+          unset.update( sub['$unset'] )
+        elsif tvalue.kind_of? Array and fvalue.kind_of? Array
+          sub = self.calculate_array_updates(fvalue,tvalue, Splash::DotNotation.join(path,i.to_s) )
+          set.update( sub['$set'] )
+          unset.update( sub['$unset'] )
+        elsif fvalue != tvalue
+          set[ Splash::DotNotation.join(path,i.to_s) ] = Splash::Lazy.demand!(to[i])
+        end
+      end
+    else
+      set[path] = Splash::Lazy.demand!(to)
+    end
+    return result
+  end
+  
   # This method generates the updates
   # required to transform hash 'from' into hash 'to'.
   # These updates can go directly into Mongo::Collection.update.
-  def self.calculate_updates(from, to, path='')
+  def self.calculate_updates(from, to, path='', lazy=true)
+    
+    if( from.kind_of?(Array) and to.kind_of?(Array) )
+      return self.calculate_array_updates(from, to, path)
+    end
+    
     result = {'$set'=>{},'$unset'=>{}}
     set = result['$set']
     unset = result['$unset']
     #puts "#{from.inspect} => #{to.inspect}"
     #fkeys = from.keys
     #tkeys = to.keys
-    fkeys = from.respond_to?(:present_keys,false) ? from.present_keys : from.keys
-    tkeys = to.respond_to?(:present_keys,false) ? to.present_keys : to.keys
+    fkeys = (lazy and from.respond_to?(:present_keys,false)) ? from.present_keys : from.keys
+    tkeys = (lazy and to.respond_to?(:present_keys,false)) ? to.present_keys : to.keys
     deleted = fkeys - tkeys
     added = tkeys - fkeys
     difference = fkeys - deleted
@@ -45,12 +81,16 @@ module Splash::Util
         sub = self.calculate_updates(fvalue,tvalue, Splash::DotNotation.join(path,key) )
         set.update( sub['$set'] )
         unset.update( sub['$unset'] )
+      elsif tvalue.kind_of? Array and fvalue.kind_of? Array
+        sub = self.calculate_array_updates(fvalue,tvalue, Splash::DotNotation.join(path,key) )
+        set.update( sub['$set'] )
+        unset.update( sub['$unset'] )
       elsif fvalue != tvalue
-        set[ Splash::DotNotation.join(path,key) ] = to[key]
+        set[ Splash::DotNotation.join(path,key) ] = Splash::Lazy.demand!(to[key])
       end
     end
     added.each do |key|
-      set[ Splash::DotNotation.join(path,key) ] = to[key]
+      set[ Splash::DotNotation.join(path,key) ] = Splash::Lazy.demand!(to[key])
     end
     deleted.each do |key|
       unset[ Splash::DotNotation.join(path,key) ] = 1

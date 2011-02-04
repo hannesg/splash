@@ -44,7 +44,7 @@ module Splash
     end
     
     def <<(other)
-      self.errors << other.errors
+      self.errors.concat other.errors
       other.each do |key,value|
         self[key] << value
       end
@@ -52,7 +52,11 @@ module Splash
     end
     
     def inspect
-      '(' + super + ',' + self.errors.inspect+')'
+      result = 'Result('
+      result << super if self.any?
+      result << self.errors.inspect if errors.any?
+      result << ')'
+      return result
     end
     
     def to_s

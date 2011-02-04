@@ -62,6 +62,11 @@ module Lazy
       super
     end
     
+    def map
+      self.complete!
+      super
+    end
+    
     def [](key)
       self.demand!(key)
       return super
@@ -96,9 +101,12 @@ module Lazy
       @lazy_complete = false
       @lazy_keys = ::Hash.new
       @lazy_sync = Sync.new
+      @lazy_mapper = nil
       self.lazy_mode = mode
       return self
     end
+    
+    attr_accessor :lazy_mapper
     
     def lazy_mode
       return @lazy_keys.default ? :inclusive : :exclusive
@@ -144,10 +152,12 @@ module Lazy
       return if complete?
       @lazy_sync.synchronize(Sync::EX) do
         return if complete?
-        result = @fetcher.all
+        result = @fetcher.to_h
         if result.available?
           result.each do |k,v|
-            self[k] = v
+            if lazy? k
+              self[k] = v
+            end
           end
         end
         self.complete = true

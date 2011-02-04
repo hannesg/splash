@@ -36,4 +36,6 @@ class Post
     
   end
   
+  embeds 'comments', :class => Comment
+  
 end

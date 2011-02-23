@@ -25,7 +25,7 @@ module Splash
         klass = options[:class] #|| self.collection.embed(name)
         self.send(:define_method,name.to_sym) do
           thiz = self
-          value = super || []
+          value = super() || []
           Class.new(klass) do
             collection thiz.class.collection.embed(name).slice(thiz._id,value)
             writeback! do |doc|

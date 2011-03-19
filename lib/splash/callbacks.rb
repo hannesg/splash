@@ -22,7 +22,7 @@ module Splash::Callbacks
   class Cancel < Break
   end
   
-  extend Concerned
+  extend Cautious
   
   protected
   def run_callbacks(name,*args)
@@ -50,6 +50,12 @@ module Splash::Callbacks
   module ClassMethods
     
     def with_callbacks(*args)
+      if args.none?
+        annote do |m|
+          with_callbacks(m)
+        end
+        return
+      end
       args.each do |fn|
         alias_method(fn.to_s + '_without_callbacks',fn)
         cbname = fn.to_s.gsub('!','')
@@ -64,8 +70,6 @@ end
 RB
       end
     end
-    
-    define_annotation :with_callbacks
     
   end
 end

@@ -27,7 +27,7 @@ module Splash::Document
   include Splash::UsesTypeAttribute
   include Splash::HasEmbededCollections
   
-  #extend Concerned
+  #extend Cautious
   
   extend Splash::Constraint::SimpleInterface
   

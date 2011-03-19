@@ -76,7 +76,6 @@ module Splash
       clone
     end
     
-    
     CHUNK_SIZE = 10
     
     def each(chunk_size=CHUNK_SIZE, &block)

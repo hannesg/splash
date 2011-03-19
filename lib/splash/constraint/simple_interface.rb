@@ -17,25 +17,36 @@
 module Splash
   module Constraint::SimpleInterface
     
-    def validate(*args,&block)
-      if block_given?
-        self.constraints << Constraint::Simple.new(*args,&block)
-      else
-        args.each do |name|
-          self.constraints << Constraint::Callback.new(name)
+    extend Cautious
+    
+    include Splash::Annotated
+    
+    module ClassMethods
+      
+      def validate(*args,&block)
+        if block_given?
+          self.constraints << Constraint::Simple.new(*args,&block)
+        else
+          args.each do |name|
+            self.constraints << Constraint::Callback.new(name)
+          end
         end
       end
-    end
-    
-    def validate_not_nil(name)
-      self.constraints << Constraint::Simple.new{|object,result|
-        if Splash::DotNotation.get(object,name).nil?
-          result[name] << "#{name} may not be nil"
+      
+      def validate_not_nil(name=nil)
+        if name.nil?
+          annote do |meth|
+            validate_not_nil(meth.to_s)
+          end
+          return
         end
-      }
+        self.constraints << Constraint::Simple.new{|object,result|
+          if Splash::DotNotation.get(object,name).nil?
+            result[name].errors << "#{name} may not be nil"
+          end
+        }
+      end
+    
     end
-    define_annotation :validate_not_nil
-    
-    
   end
 end

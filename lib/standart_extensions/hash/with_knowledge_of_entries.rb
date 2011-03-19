@@ -14,7 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require File.join(File.dirname(__FILE__),"/../concerned.rb")
+require File.join(File.dirname(__FILE__),"/../cautious.rb")
 class Hash
   module WithKnowledgeOfEntries
     
@@ -26,7 +26,7 @@ class Hash
       super
     end
     
-    extend ::Concerned
+    extend ::Cautious
     
     module ClassMethods
     

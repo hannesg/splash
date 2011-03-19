@@ -26,7 +26,7 @@ module Splash
       return result
     end
     
-    extend Concerned
+    extend Cautious
     
     when_included do |base|
       base.merged_inheritable_attr(:constraints)

@@ -66,11 +66,11 @@ module Splash::Documentbase
   
   extend Combineable
   
-  extend Concerned
+  extend Cautious
   
   combined_with( Splash::HasConstraints, Splash::Callbacks, Splash::HasCollection ) do |base|
     
-    base.with_callbacks! :store!
+    base.with_callbacks :store!
     base.class_eval do
       def before_store_validate
         self.raise_unless_valid

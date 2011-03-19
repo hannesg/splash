@@ -16,11 +16,6 @@
 #
 class Array
   
-  # 'first' should not be so alone
-  def rest
-    self[1..-1] || []
-  end
-  
   def deep_clone
     c = self.clone
     c.map!{|v|

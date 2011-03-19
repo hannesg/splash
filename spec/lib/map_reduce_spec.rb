@@ -190,7 +190,7 @@ JS
         
         MapReducePicture::Sizes.refresh!
         
-        MapReducePicture::Sizes.collection.name.should == "map_reduce_picture.sizes"
+        MapReducePicture.namespace.class_for(MapReducePicture::Sizes.collection.name).should == MapReducePicture::Sizes
         
         MapReducePicture::Sizes.count.should == 2
       end

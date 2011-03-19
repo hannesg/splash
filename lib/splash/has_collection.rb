@@ -18,7 +18,7 @@ module Splash
   
   module HasCollection
     
-    extend Concerned
+    extend Cautious
     
     when_included do |base|
       base.instance_variable_set('@is_collection_base',true)
@@ -131,7 +131,7 @@ module Splash
           return true
         end
         k = self.superclass
-        while( !k.named? )
+        while( k.anonymous? )
           k = k.superclass
         end
         if k < Splash::HasCollection

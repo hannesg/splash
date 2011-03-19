@@ -14,13 +14,13 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-module Concerned
+module Cautious
   
-  module SlightlyConcerned
+  module SlightlyCautious
     
     def included(base)
       self.included_modules.reverse_each do |mod|
-        #next unless mod.kind_of? SlightlyConcerned
+        #next unless mod.kind_of? SlightlyCautious
         begin
           mod.included(base)
         rescue NoMethodError
@@ -28,67 +28,72 @@ module Concerned
       end
       super
       if base.method(:included).owner == Module
-        base.extend(SlightlyConcerned)
+        base.extend(SlightlyCautious)
       end
     end
     
     def inherited(base)
       if base.method(:inherited).owner == Class
-        base.extend(SlightlyConcerned)
+        base.extend(SlightlyCautious)
       end
       super
     end
     
     def extended(base)
+      if !base.respond_to? :extended
+        if self.const_defined?('ClassMethods')
+          base.extend(self::ClassMethods)
+        end
+        return 
+      end
       if base.method(:extended).owner == Module
-        base.extend(SlightlyConcerned)
+        base.extend(SlightlyCautious)
       end
       super
     end
     
   end
   
-  include SlightlyConcerned
+  include SlightlyCautious
   
   def included(base)
     if self.const_defined?('ClassMethods')
-      cm = self.const_get('ClassMethods')
-      base.extend(self.const_get('ClassMethods'))
+      base.extend(self::ClassMethods)
     end
-    if instance_variable_defined? :@concerned_included_block and @concerned_included_block
-      @concerned_included_block.call(base)
+    if instance_variable_defined? :@cautious_included_block and @cautious_included_block
+      @cautious_included_block.call(base)
     end
     super
   end
   
   def inherited(base)
     super
-    if @concerned_inherited_block
-      @concerned_inherited_block.call(base)
+    if @cautious_inherited_block
+      @cautious_inherited_block.call(base)
     end
   end
   
   def extended(base)
     super
-    if @concerned_extended_block
-      @concerned_extended_block.call(base)
+    if @cautious_extended_block
+      @cautious_extended_block.call(base)
     end
   end
   
   def self.extended(base)
-    base.extend(SlightlyConcerned)
+    base.extend(SlightlyCautious)
   end
   
   def when_included(&block)
-    @concerned_included_block = block
+    @cautious_included_block = block
   end
   
   def when_inherited(&block)
-    @concerned_inherited_block = block
+    @cautious_inherited_block = block
   end
   
   def when_extended(&block)
-    @concerned_extended_block = block
+    @cautious_extended_block = block
   end
   
 end

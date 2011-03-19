@@ -22,7 +22,7 @@ module Splash
     def self.get_class_hierachie(klass)
       base=[]
       begin
-        if klass.named?
+        unless klass.anonymous?
           base << klass
         end
         #return base unless klass.instance_of? Class
@@ -32,12 +32,12 @@ module Splash
     end
     
     extend Combineable
-    extend Concerned
+    extend Cautious
     
     module ConditionSetter
       def inherited(child)
         super
-        if child.respond_to?(:conditions!) and child.named? and !child.has_own_collection?
+        if child.respond_to?(:conditions!) and !child.anonymous? and !child.has_own_collection?
           child.conditions!("Type"=>child.to_s)
         end
       end
@@ -66,7 +66,7 @@ module Splash
     
     combined_with(HasCollection) do |base|
       if base.kind_of? Class
-        if base.respond_to?(:conditions!) and base.named? and !base.has_own_collection?
+        if base.respond_to?(:conditions!) and !base.anonymous? and !base.has_own_collection?
           base.conditions!("Type"=>base.to_s)
         end
         base.extend(ConditionSetter)

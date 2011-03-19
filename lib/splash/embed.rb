@@ -40,7 +40,7 @@ module Splash::Embed
   include Splash::HasConstraints
   include Splash::UsesTypeAttribute
   
-  extend Concerned
+  extend Cautious
   
   class << self
     def define(&block)

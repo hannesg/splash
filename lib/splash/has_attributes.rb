@@ -23,7 +23,7 @@ module Splash
     ATTRIBUTE_SETTER_REGEXP = /^([a-zA-Z_]+)=$/.freeze
     ATTRIBUTE_QUERY_REGEXP = /^([a-zA-Z_]+)\?$/.freeze
     
-    extend Concerned
+    extend Cautious
     extend Combineable
     
     combined_with(HasCollection) do |base|

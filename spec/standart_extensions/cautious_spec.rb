@@ -16,9 +16,23 @@
 #
 require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
-describe Concerned do
+describe Cautious do
   
   it "should work in subsequent " do
+    
+    module BasicModule
+      
+      extend Cautious
+      
+      module ClassMethods
+        
+      end
+      
+    end
+    
+    
+    
+    
     
   end
   

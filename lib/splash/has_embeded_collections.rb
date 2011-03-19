@@ -17,7 +17,7 @@
 module Splash
   module HasEmbededCollections
     
-    extend Concerned
+    extend Cautious
     
     module ClassMethods
       

@@ -90,7 +90,7 @@ describe Splash::Namespace do
       
       ns.class_to_collection_name("Consultant").should == "consultant"
       
-      ns.class_to_collection_name("FinanceEnquiry").should == "finance_enquiry"
+      ns.class_to_collection_name("FinanceEnquiry").should == "financeEnquiry"
       
       ns.class_to_collection_name("Notification::Request").should == "notification.request"
       

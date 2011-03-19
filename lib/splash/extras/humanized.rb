@@ -18,7 +18,15 @@ require "humanized.rb"
 class Splash::Attribute
   
   def _(*args,&block)
-    ( @class._(:attributes, @name.to_sym) | @type._ )._(*args, &block)
+    ( @class._(:attribute, @name.to_sym) | @type._ )._(*args, &block)
+  end
+  
+end
+
+class Splash::Scope
+  
+  def _(*args,&block)
+    scope_root._(*args, &block)
   end
   
 end

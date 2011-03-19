@@ -71,7 +71,7 @@ module Splash::DotNotation
             end
             return value;
           end
-          traverse(object[future.first], history +[future.first], future.rest,block, set,options)
+          traverse(object[future.first], history +[future.first], future.tail,block, set,options)
         else
           i = 0
           l = object.length
@@ -87,10 +87,10 @@ module Splash::DotNotation
         final(object,history,future.first,block,set,options)
         return object
       elsif object.kind_of? Hash
-        traverse(object[future.first],history + [future.first], future.rest,block, set,options)
+        traverse(object[future.first],history + [future.first], future.tail,block, set,options)
         return object
       else
-        traverse(object.send(future.first),history + [future.first], future.rest,block, set,options)
+        traverse(object.send(future.first),history + [future.first], future.tail,block, set,options)
         return object
       end
     end

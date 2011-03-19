@@ -24,11 +24,18 @@ describe Splash::Annotated do
       
       include Splash::Annotated
       
-      extend Concerned
+      extend Cautious
       
       module ClassMethods
       
-        def named(fn,name)
+        def named(*args)
+          if args.size == 1
+            annote do |meth|
+              named(meth, *args)
+            end
+            return
+          end
+          fn, name = args
           @named||={}
           @named[fn]=name
         end
@@ -36,8 +43,6 @@ describe Splash::Annotated do
         def name(fn)
           return @named[fn] rescue nil
         end
-        
-        define_annotation :named
       end
       
     end
@@ -65,7 +70,14 @@ describe Splash::Annotated do
       
       class << self
         
-        def named(fn,name)
+        def named(*args)
+          if args.size == 1
+            annote do |meth|
+              named(meth, *args)
+            end
+            return
+          end
+          fn, name = args
           @named||={}
           @named[fn]=name
         end
@@ -73,8 +85,6 @@ describe Splash::Annotated do
         def name(fn)
           return @named[fn] rescue nil
         end
-        
-        define_annotation :named
         
       end
       

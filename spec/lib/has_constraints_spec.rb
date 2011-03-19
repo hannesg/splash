@@ -22,7 +22,7 @@ describe Splash::HasConstraints do
     
     include Splash::HasConstraints
     
-    extend Splash::Constraint::SimpleInterface
+    include Splash::Constraint::SimpleInterface
     
     attr_accessor :foo
     

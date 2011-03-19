@@ -16,22 +16,29 @@
 #
 module Splash::Annotated
   
-  extend Concerned
+  extend Cautious
   
   module ClassMethods
-  
+
+protected
     def method_added(meth)
       apply_annotations(meth)
       super
     end
     
+    def annote(&block)
+      @annotations ||= []
+      @annotations << block
+    end
+    
+
     def apply_annotations(meth)
       return if @annotations.nil?
       a = @annotations
       @annotations=[]
-      a.each do |(fn,args,block)|
-        args.unshift(meth)
-        self.send(fn,*args,&block)
+      meth = meth.to_sym
+      a.each do |block|
+        block.call(meth)
       end
       return nil
     end

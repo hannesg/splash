@@ -57,7 +57,36 @@ describe "humanized" do
     
     
     De.get(User,:genus).should == :male
+    
     De.get(User.attribute('name'),:singular,:genitiv).should == 'Namens'
+    
+  end
+  
+  it "should support scopes" do
+    
+    pending "humanized not loaded" unless humanized_gem
+    
+    de = Humanized::Humanizer.new
+    
+    class CD
+      
+      include Splash::Document
+      
+      attribute 'name'
+      
+    end
+    
+    de[CD] = {
+      :genus => :female,
+      :singular => {
+        :nominativ => 'CD'
+      }
+    }
+    
+    
+    de.get(CD,:genus).should == :female
+    
+    de.get(CD.conditions('name'=>'Mirror Mirror'),:genus).should == :female
     
   end
   

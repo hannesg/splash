@@ -90,7 +90,8 @@ module Splash
     end
     
     def class_to_collection_name(klass_name,recheck = true)
-      cn = klass_name.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }
+      #cn = klass_name.gsub(/(<?[a-z])([A-Z])/){ |c| c[0,1]+"_"+c[1,2].downcase }
+      cn = klass_name.dup
       cn.gsub!(/::([A-Z])/){|d| "." + (d[2,1].downcase) }
       cn[0...1] = cn[0...1].downcase
       if recheck
@@ -100,7 +101,8 @@ module Splash
     end
     
     def collection_to_class_name(collection_name, recheck = true)
-      kn = collection_name.gsub(/_([a-z])/){|c| c[1,2].upcase }
+      #kn = collection_name.gsub(/_([a-z])/){|c| c[1,2].upcase }
+      kn = collection_name.dup
       kn.gsub!(/\.[a-z]/){|c| '::'+c[1,1].upcase}
       kn[0...1] = kn[0...1].upcase
       if recheck
@@ -150,7 +152,7 @@ module Splash
         unless k.namespace == thiz
           raise "Namespace mismatch: #{k} ( namespace: #{k.namespace.to_s} ) is a Superclass of #{klass} ( namespace: #{thiz.to_s} )."
         end
-        if k.named?
+        unless k.anonymous?
           last_named = k
         end
         if last_named and k.instance_variable_defined?('@is_collection_base')

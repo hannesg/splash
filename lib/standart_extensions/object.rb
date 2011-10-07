@@ -14,6 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+require 'facets/na'
 class Object
   
   alias_method :deep_clone, :clone

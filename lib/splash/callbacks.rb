@@ -47,6 +47,32 @@ module Splash::Callbacks
     end
   end
   
+  module ModuleMethods
+    
+    def with_callbacks(*args)
+      if args.none?
+        annote do |m|
+          with_callbacks(m)
+        end
+        return
+      end
+      args.each do |fn|
+        alias_method(fn.to_s + '_without_callbacks',fn)
+        cbname = fn.to_s.gsub('!','')
+        self.class_eval <<RB, __FILE__, __LINE__
+def #{fn}(*args)
+    if run_callbacks('before_#{cbname}')
+      result = super
+      run_callbacks('after_#{cbname}')
+      return result
+    end
+end
+RB
+      end
+    end
+    
+  end
+  
   module ClassMethods
     
     def with_callbacks(*args)
@@ -72,4 +98,5 @@ RB
     end
     
   end
+  
 end

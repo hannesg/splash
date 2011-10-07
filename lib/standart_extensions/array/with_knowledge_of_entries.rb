@@ -14,7 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-require File.join(File.dirname(__FILE__),"/../cautious.rb")
+require "cautious"
 class Array
   
   module WithKnowledgeOfEntries

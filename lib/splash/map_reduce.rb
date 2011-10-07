@@ -31,7 +31,7 @@ module Splash
     
     extend Cautious
     
-    module ClassMethods
+    module ModuleMethods
       
       def from_callback(callback,map,reduce,options,&block)
         thiz = self

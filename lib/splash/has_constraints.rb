@@ -19,7 +19,7 @@ module Splash
   module HasConstraints
     
     def self.validate(object, target = object)
-      result = Splash::Constraint::Result.new
+      result = Splash::Constraint::Result.new(target)
       object.each_constraints do |constraint|
         constraint.validate(target,result)
       end
@@ -33,7 +33,7 @@ module Splash
     end
     
     def validate
-      result = Splash::Constraint::Result.new
+      result = Splash::Constraint::Result.new(self)
       self.each_constraints do |constraint|
         constraint.validate(self,result)
       end
@@ -41,7 +41,7 @@ module Splash
     end
     
     def validate_object(obj)
-      result = Splash::Constraint::Result.new
+      result = Splash::Constraint::Result.new(obj)
       self.each_constraints do |constraint|
         constraint.validate(obj,result)
       end

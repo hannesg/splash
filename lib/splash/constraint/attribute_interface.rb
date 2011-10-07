@@ -22,5 +22,11 @@ module Splash
       self.constraints << Constraint::Simple.new(name,&block)
     end
     
+    def attribute_validate_not_nil(name)
+      self.constraints << Constraint::Simple.new(name){|value|
+        errors << _(:may_not_be_nil) if !value.given?
+      }
+    end
+    
   end
 end

@@ -20,12 +20,24 @@ module Splash
     
     include Splash::DotNotation
     
-    attr_reader :errors
+    attr_reader :errors, :base
     
-    def initialize()
+    def initialize(base,path = [] )
       @errors = []
-      super do |hsh,key|
-        hsh[key] = Constraint::Result.new
+      @base = base
+      @path = path
+      super() do |hsh,key|
+        hsh[key] = Constraint::Result.new(@base,@path + [key])
+      end
+    end
+    
+    def _(*args,&block)
+      
+      if @path.any?
+        path = @path.map &:to_sym
+        return ( @base._(:attribute,*path) | @base._ ).errors(*args,{:attribute => @base._.attribute(*path)},&block) 
+      else
+        return @base._.errors(*args,&block) 
       end
     end
     
@@ -44,11 +56,16 @@ module Splash
     end
     
     def <<(other)
-      self.errors.concat other.errors
-      other.each do |key,value|
-        self[key] << value
+      if other.kind_of? Constraint::Result
+        self.errors.concat other.errors
+        other.each do |key,value|
+          self[key] << value
+        end
+        return self
+      else
+        self.errors << other
+        return self
       end
-      return self
     end
     
     def inspect

@@ -16,6 +16,7 @@
 #
 require "logger"
 require "delegate"
+require "mongo"
 module Splash
   class Namespace
     
@@ -112,7 +113,7 @@ module Splash
     end
     
     def initialize(uri_or_db='mongodb://localhost/splash')
-      if uri_or_db.kind_of? Mongo::DB
+      if uri_or_db.kind_of? ::Mongo::DB
         @db = uri_or_db
       else
         match = URI_MATCHER.match(uri_or_db)

@@ -26,6 +26,10 @@ class Splash::Attribute
     end
   end
   
+  def this
+    self
+  end
+  
   def has?(key)
     @class.respond_to?("attribute_#{@name}_#{key}")
   end
@@ -105,7 +109,6 @@ class Splash::Attribute
   
   def method_missing(meth, *args, &block)
     nm = 'attribute_' + meth.to_s
-    puts @class.inspect
     if @class.respond_to? nm
       return @class.send(nm,@name,*args,&block)
     else

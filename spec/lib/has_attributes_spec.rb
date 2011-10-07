@@ -391,4 +391,56 @@ describe Splash::HasAttributes do
     end
   end
   
+  describe 'constrainig' do
+  
+    it "should work" do
+    
+      class AttributedConstraintedDocument1
+      
+        include Splash::HasAttributes
+        include Splash::HasConstraints
+        extend Splash::Constraint::AttributeInterface
+        
+        attribute 'bla' do
+          
+          validate do | value |
+          
+            errors << _.strange_error if value == 5
+          
+          end
+          
+        end
+        
+        attribute 'blub' do 
+        
+          validate do | value, errors |
+          
+            errors << errors._.strange_error if value == 5
+          
+          end
+        
+        end
+        
+        attribute 'blob' do
+        
+          validate_not_nil
+        
+        end
+      
+      end
+      
+      AttributedConstraintedDocument1.new('bla' => 4, 'blub' => 6, 'blob' => true).validate.should be_valid
+      
+      doc = AttributedConstraintedDocument1.new('bla' => 5,'blub' => 5)
+      result = doc.validate
+      result.should_not be_valid
+      
+      result['bla'].errors.should have(1).items
+      result['blub'].errors.should have(1).items
+      result['blob'].errors.should have(1).items
+    
+    end
+  
+  end
+  
 end

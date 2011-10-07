@@ -154,6 +154,9 @@ module Splash::DotNotation
     if path.kind_of? Array
       return path
     end
+    if path.kind_of? Numeric
+      return [path]
+    end
     if path == ''
       return []
     end

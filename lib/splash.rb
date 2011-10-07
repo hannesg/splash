@@ -14,12 +14,10 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-if defined? Splash
-  raise "Splash included twice!"
-end
 
 require "cautious"
 require "combineable"
+require "mongo"
 
 Dir[File.join(File.dirname(__FILE__),"/standart_extensions/**/*.rb")].each do |path|
   require path

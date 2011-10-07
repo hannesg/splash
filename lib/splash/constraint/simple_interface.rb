@@ -41,8 +41,8 @@ module Splash
           return
         end
         self.constraints << Constraint::Simple.new{|object,result|
-          if Splash::DotNotation.get(object,name).nil?
-            result[name].errors << "#{name} may not be nil"
+          if !Splash::DotNotation.get(object,name).given?
+            result[name].errors << result._.may_not_be_nil
           end
         }
       end

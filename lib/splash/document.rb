@@ -30,6 +30,7 @@ module Splash::Document
   #extend Cautious
   
   extend Splash::Constraint::SimpleInterface
+  extend Splash::Constraint::AttributeInterface
   
   
   

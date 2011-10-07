@@ -399,7 +399,9 @@ describe Splash::HasAttributes do
       
         include Splash::HasAttributes
         include Splash::HasConstraints
-        extend Splash::Constraint::AttributeInterface
+        include Splash::Constraint::AttributeInterface
+        
+        
         
         attribute 'bla' do
           

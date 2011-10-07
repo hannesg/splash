@@ -18,14 +18,19 @@ require "set"
 module Splash
   module Constraint::AttributeInterface
     
-    def attribute_validate(name,&block)
-      self.constraints << Constraint::Simple.new(name,&block)
-    end
+    extend Cautious
     
-    def attribute_validate_not_nil(name)
-      self.constraints << Constraint::Simple.new(name){|value|
-        errors << _(:may_not_be_nil) if !value.given?
-      }
+    module ClassMethods
+    
+      def attribute_validate(name,&block)
+        self.constraints << Constraint::Simple.new(name,&block)
+      end
+      
+      def attribute_validate_not_nil(name)
+        self.constraints << Constraint::Simple.new(name){|value|
+          errors << _(:may_not_be_nil) if !value.given?
+        }
+      end
     end
     
   end

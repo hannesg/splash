@@ -3,3 +3,5 @@
 trash
 Gemfile.lock
 pkg
+*.rb~
+*.rbc

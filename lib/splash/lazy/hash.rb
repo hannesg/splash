@@ -121,6 +121,7 @@ module Lazy
     def demand!(*keys)
       return if complete?
       @lazy_sync.synchronize(Sync::EX) do
+        return if complete?
         keys = keys.select{|k| self.lazy? k }
         return if keys.none?
         result = @fetcher.slice(*keys)

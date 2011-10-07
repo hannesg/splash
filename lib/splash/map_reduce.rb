@@ -111,8 +111,14 @@ module Splash
         options = map_reduce_base_options.dup
         options[:keeptemp] = false
         options[:raw] = true
-        options[:out] = nil
+        options[:out] = {:inline => 1}
         return options
+      end
+      
+      def refresh!
+        result = map_reduce_callback.call(map,reduce,self.map_reduce_options)
+        self.collection = self.namespace.collection(result["result"])
+        return result.except("result","ok")
       end
       
     end
@@ -130,13 +136,15 @@ module Splash
         return options
       end
       
+      def refresh!
+        result = map_reduce_callback.call(map,reduce,self.map_reduce_options)
+        self.collection = self.namespace.collection(result["result"])
+        return result.except("result","ok")
+      end
+      
     end
     
-    def refresh!
-      result = map_reduce_callback.call(map,reduce,self.map_reduce_options)
-      self.collection = self.namespace.collection(result["result"])
-      return result.except("result","ok")
-    end
+    
     
     
   end

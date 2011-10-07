@@ -194,6 +194,7 @@ module Splash
     attr_reader :db
     
     def collection(name)
+      raise ArgumentError, "name must be a String but got #{name.inspect}" unless name.kind_of? String
       if name.include? ':'
         base, path = name.split(':')
         return Splash::EmbededCollection.new(path, self.collection(base))

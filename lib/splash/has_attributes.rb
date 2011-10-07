@@ -78,6 +78,13 @@ module Splash
       super()
     end
     
+    def ==(other)
+      if self.class == other.class
+        return self.attributes.raw == other.attributes.raw
+      end
+      return super
+    end
+    
     module ClassMethods
       
       def alias_attribute(aliaz,real)

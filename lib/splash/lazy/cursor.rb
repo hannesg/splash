@@ -65,11 +65,11 @@ private
       return document unless defined?(@lazy_fields) or defined?(@lazy_arrays)
       id = document['_id']
       # transform hashes
+      
       if @fields.value?(1) or @fields.all?{|f| f.kind_of? Hash}
         @lazy_fields.each do |key,value|
           document = DotNotation::Enumerator.new(document,key).map! do |path,hsh|
             if hsh.kind_of? ::Hash
-              #puts "made inclusive lazy: #{path.join('.')}"
               result = Lazy::Hash.new(Lazy::HashFetcher.new(@collection,id,path.join('.'),@lazy_slices),:inclusive)
               result.hmmm!(hsh)
               result.unlazify!(*value)

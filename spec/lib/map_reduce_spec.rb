@@ -20,6 +20,8 @@ describe Splash::MapReduce do
   
   it "should work" do
     
+    pending "temporary map_reduce is disabled"
+    
     class Post
       
       include Splash::Document
@@ -58,6 +60,8 @@ REDUCE
   end
   
   it "should work with javascript scope" do
+    
+    pending "temporary map_reduce is disabled"
     
     class Post
       

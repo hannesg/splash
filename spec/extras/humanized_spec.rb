@@ -55,10 +55,9 @@ describe "humanized" do
       
     end
     
+    De.get( User._.genus ).should == :male
     
-    De.get(User,:genus).should == :male
-    
-    De.get(User.attribute('name'),:singular,:genitiv).should == 'Namens'
+    De.get( User._.attribute(:name).singular.genitiv ).should == 'Namens'
     
   end
   
@@ -84,9 +83,9 @@ describe "humanized" do
     }
     
     
-    de.get(CD,:genus).should == :female
+    de.get(CD._.genus).should == :female
     
-    de.get(CD.conditions('name'=>'Mirror Mirror'),:genus).should == :female
+    de.get(CD.conditions('name'=>'Mirror Mirror')._.genus).should == :female
     
   end
   

@@ -87,6 +87,9 @@ describe Splash::Lazy do
       
       include Splash::Document
       
+      attribute "x"
+      attribute "y"
+      
     end
     
     h1 = LazyTestDocument1.new("x"=>1,"y"=>1).store!
@@ -97,8 +100,10 @@ describe Splash::Lazy do
     q = LazyTestDocument1.lazy('y')
     
     q.each do |h|
+      
       h.y.should == h.x**2
     end
+    
   end
   
   it "should support lazy loading" do
@@ -106,6 +111,9 @@ describe Splash::Lazy do
     class LazyTestDocument2
       
       include Splash::Document
+      
+      attribute "x"
+      attribute "y"
       
       fieldmode! :include
       eager! 'x', 'Type'
@@ -137,6 +145,9 @@ describe Splash::Lazy do
       include Splash::Documentbase
       include Splash::HasAttributes
       include Splash::HasCollection
+      
+      attribute "x"
+      attribute "y"
       
       fieldmode! :none
       

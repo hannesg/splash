@@ -18,7 +18,11 @@ require "humanized.rb"
 class Splash::Attribute
   
   def _(*args,&block)
-    ( @class._(:attribute, @name.to_sym) | @type._ )._(*args, &block)
+    if @type != Object
+      ( @class._(:attribute, @name.to_sym) | @type._ )._(*args, &block)
+    else
+      @class._(:attribute, @name.to_sym)._(*args, &block)
+    end
   end
   
 end

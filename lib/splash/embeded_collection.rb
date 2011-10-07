@@ -86,7 +86,7 @@ function(key,result){
 }
 '
   def initialize(path, basecollection)
-    raise "IEKS!" unless path.kind_of? String
+    raise "Path must be a kind of String but got #{path.inspect}" unless path.kind_of? String
     @basecollection, @path = basecollection, path
     @pk_factory ||= BSON::ObjectId
   end
@@ -135,7 +135,8 @@ function(){
     }
   });
 }"
-    doc = @basecollection.map_reduce(map,REDUCE,:query=>rekey_selector({'_id'=>id}) ).find_one
+    result = @basecollection.map_reduce(map,REDUCE,:query=>rekey_selector({'_id'=>id}),:out=>{:inline=>1},:raw=>1 )
+    doc = result["results"][0]
     return nil if doc.nil?
     value = doc['value']
     value['_owner'] = BSON::DBRef.new(@basecollection.name,doc['_id'])

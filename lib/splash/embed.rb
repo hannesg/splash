@@ -39,6 +39,9 @@ module Splash::Embed
   #include Splash::Saveable
   include Splash::HasConstraints
   include Splash::UsesTypeAttribute
+
+  extend Splash::Constraint::SimpleInterface
+  include Splash::Constraint::AttributeInterface
   
   extend Cautious
   

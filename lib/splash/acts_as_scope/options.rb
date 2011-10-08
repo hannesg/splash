@@ -14,6 +14,9 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+
+require 'facets/hash/slice'
+
 module Splash::ActsAsScope
   
   class Options

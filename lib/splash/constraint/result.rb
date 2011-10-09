@@ -34,7 +34,7 @@ module Splash
     def _(*args,&block)
       
       if @path.any?
-        path = @path.map &:to_sym
+        path = @path.select{|x| !x.kind_of? Numeric }.map &:to_sym
         return ( @base._(:attribute,*path) | @base._ ).errors(*args,{:attribute => @base._.attribute(*path)},&block) 
       else
         return @base._.errors(*args,&block) 

@@ -41,9 +41,9 @@ module Splash
           return
         end
         args.each do |name|
-          self.constraints << Constraint::Simple.new{|object,result|
-            if !Splash::DotNotation.get(object,name).given?
-              result[name].errors << result._.may_not_be_nil
+          self.constraints << Constraint::Simple.new(name){|object,result|
+            if object.given?
+              result.errors << result._.may_not_be_nil
             end
           }
         end

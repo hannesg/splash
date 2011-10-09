@@ -33,18 +33,20 @@ module Splash
         end
       end
       
-      def validate_not_nil(name=nil)
-        if name.nil?
+      def validate_not_nil(*args)
+        if args.none?
           annote do |meth|
             validate_not_nil(meth.to_s)
           end
           return
         end
-        self.constraints << Constraint::Simple.new{|object,result|
-          if !Splash::DotNotation.get(object,name).given?
-            result[name].errors << result._.may_not_be_nil
-          end
-        }
+        args.each do |name|
+          self.constraints << Constraint::Simple.new{|object,result|
+            if !Splash::DotNotation.get(object,name).given?
+              result[name].errors << result._.may_not_be_nil
+            end
+          }
+        end
       end
     
     end

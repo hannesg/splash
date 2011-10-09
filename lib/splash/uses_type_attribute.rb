@@ -14,6 +14,9 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+
+require 'facets/kernel/constant'
+
 module Splash
   module UsesTypeAttribute
     

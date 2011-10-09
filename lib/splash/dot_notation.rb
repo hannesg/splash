@@ -41,22 +41,14 @@ module Splash::DotNotation
     end
     
     def final(object,history,key,block,set,options)
-      if object.kind_of? Hash
-        o = object[key]
-      else
-        o = object.send(key)
-      end
+      o = Splash::DotNotation.get_key(object,key)
       if options[:iterate_last] and o.kind_of? Array
         traverse(o,history + [key],[],block,set,options)
         return o
       end
       value = block.call(history + [key],o)
       if set
-        if object.kind_of? Hash
-          object[key] = value
-        else
-          object.send(key+'=',value)
-        end
+        Splash::DotNotation.set_key(object, key, value)
       end
       return value
     end
@@ -106,7 +98,7 @@ module Splash::DotNotation
     
     def initialize(object,path)
       @object = object
-      @path = DotNotation.parse_path(path)
+      @path = Splash::DotNotation.parse_path(path)
     end
     
     def each
@@ -117,7 +109,7 @@ module Splash::DotNotation
         yield(obj,Position.new(past.dup,future.dup))
         if future.any?
           k = future.unshift
-          obj = DotNotation.get_key(obj,k)
+          obj = Splash::DotNotation.get_key(obj,k)
           past.push( k )
         else
           return obj

@@ -179,6 +179,8 @@ module Splash::DotNotation
     elsif object.kind_of? Hash
       return NA unless object.key? key
       return object[key]
+    elsif object.respond_to? :dot_notation_get
+      return object.dot_notation_get(key)
     else
       return NA if key.kind_of? Numeric
       return NA unless object.respond_to? key
@@ -196,6 +198,8 @@ module Splash::DotNotation
       end
     elsif object.kind_of? Hash
       return object[key]=value
+    elsif object.respond_to? :dot_notation_set
+      return object.dot_notation_set(key,value)
     else
       return object.send(key+"=",value)
     end

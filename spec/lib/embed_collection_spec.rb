@@ -121,7 +121,19 @@ describe Splash::EmbededCollection do
     
     dd.comments << c2
     
-    DocumentWithEmbeds1.first.should have(2).comments
+    #dd.store!
+    
+    puts DocumentWithEmbeds1.first.inspect
+    
+    
+    doc = DocumentWithEmbeds1.create(
+      'body' => 'bla',
+      'comments' => [ DocumentWithEmbeds1::Comment.new('body'=>'blub') ]
+    )
+    
+    puts DocumentWithEmbeds1.to_a.inspect
+    
+    
   end
   
 end

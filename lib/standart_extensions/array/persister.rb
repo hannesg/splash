@@ -23,9 +23,8 @@ class Array
       return nil if val.nil?
       return val.map_lazy{|e| @entry_persister.from_saveable(e) }
       nu=@base_class.new
-      val.inject(nu){|memo,e|
-        memo << @entry_persister.from_saveable(e)
-        memo
+      val.inject(nu){|e|
+        @entry_persister.from_saveable(e)
       }
     end
     
@@ -34,9 +33,8 @@ class Array
       if val.respond_to? :complete!
         val.complete!
       end
-      val.inject([]){|memo,e|
-        memo << @entry_persister.to_saveable(e)
-        memo
+      val.map{|e|
+        @entry_persister.to_saveable(e)
       }
     end
     

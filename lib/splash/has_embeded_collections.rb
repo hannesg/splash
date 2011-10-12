@@ -23,6 +23,13 @@ module Splash
       
       def embeds(name,options={})
         klass = options[:class] #|| self.collection.embed(name)
+
+        if self.respond_to? :attribute
+          self.attribute(name, EmbededCollection.of(klass)) do
+            default :new
+          end
+        end
+
         self.send(:define_method,name.to_sym) do
           thiz = self
           value = super() || []
@@ -31,6 +38,13 @@ module Splash
             writeback! do |doc|
               doc._owner = thiz._dbref
             end
+          end
+        end
+        self.send(:define_method,"#{name}=".to_sym) do |value|
+          if value.kind_of? Array
+            collection = self.send(name)
+            collection.remove
+            collection.<<(*value)
           end
         end
       end

@@ -240,13 +240,13 @@ RB
             range = (@lazy_length + range.begin)..(@lazy_length + range.end)
           end
         else
-          raise "Begin and end must have the same signum for lazy arrays." if range.end >= 0
+          raise "Begin and end must have the same signum for lazy arrays, but got #{range.to_s}." if range.end >= 0
         end
       else
         if @lazy_length and range.end >= @lazy_length
           range = (range.begin)..(@lazy_length-1)
         end
-        raise "Begin and end must have the same signum for lazy arrays." if range.end < 0
+        raise "Begin and end must have the same signum for lazy arrays, but got #{range.to_s}." if range.end < 0
       end
       return range
     end

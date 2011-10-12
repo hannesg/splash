@@ -16,6 +16,41 @@
 #
 class Splash::EmbededCollection
   
+  class Persister < Array::Persister
+  
+    def from_saveable(val)
+      return val
+    end
+  
+    def to_saveable(val)
+      return nil if val.nil?
+      entry_class = @base_class.entry_class
+      return val.map{|e|
+        if e.kind_of? entry_class
+          e.demand_id!
+          @entry_persister.to_saveable(e)
+        else
+          e
+        end
+      }
+    end
+  
+  end
+  
+  module CollectionExtension
+  
+    def persister
+      return Splash::EmbededCollection::Persister.new(self, self.entry_class.eigenpersister)
+    end
+  
+  end
+  
+  def self.of(klass)
+    c = Array.of(klass)
+    c.extend(CollectionExtension)
+    return c
+  end
+  
   class Cursor
     
     def initialize(arr,options)
@@ -35,7 +70,7 @@ class Splash::EmbededCollection
     
     def next_document
       doc = @array[@position]
-      if doc.nil?
+      if doc.nil? or @position == @limit
         @has_more = false
       end
       @position += 1
@@ -75,6 +110,9 @@ class Splash::EmbededCollection
     def find(selector={},options={})
       skip = options[:skip] || 0
       limit = options[:limit] || -1
+      if skip == 0 and limit == -1
+        return Cursor.new(@loaded,{:limit=>limit})
+      end
       return Cursor.new(@loaded[skip..(skip + limit)],{:limit=>limit})
     end
     
@@ -115,6 +153,10 @@ function(key,result){
   # WARNING: This updates only one embed per document!
   def update(selector,updates,options={})
     @basecollection.update({@path=>{'$elemMatch'=>selector}}, rekey_updates(updates), options)
+  end
+  
+  def remove(selector={}, opts={})
+    @basecollection.update({@path=>{'$pull'=>selector}}, opts)
   end
   
   def update_document(id,updates,options={})

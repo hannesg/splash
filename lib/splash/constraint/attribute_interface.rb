@@ -31,6 +31,19 @@ module Splash
           errors << _(:may_not_be_nil) if !value.given?
         }
       end
+      
+      def attribute_validate_is_not(name, what)
+        self.constraints << Constraint::Simple.new(name){|value|
+          errors << _(:may_not_be,what.to_sym) if value.send("#{what}?")
+        }
+      end
+      
+      def attribute_validate_is(name, what)
+        self.constraints << Constraint::Simple.new(name){|value|
+          errors << _(:must_be,what.to_sym) if !value.send("#{what}?")
+        }
+      end
+      
     end
     
   end

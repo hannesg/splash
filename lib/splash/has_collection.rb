@@ -59,6 +59,7 @@ module Splash
     end
     
     def hash
+      demand_id!
       ( self.class.hash << 32 ) + self._id.hash
     end
     
@@ -78,9 +79,7 @@ module Splash
       end
       
       def store!(object)
-        return self.collection.save(
-          eigenpersister.to_saveable(object)
-        );
+        return self.collection.save( eigenpersister.to_saveable(object) );
       end
       
       def namespace(*args)

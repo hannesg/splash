@@ -33,6 +33,38 @@ module Splash
         end
       end
       
+      def validate_is_not(what, *args)
+        if args.none?
+          annote do |meth|
+            validate_is_not(what, meth.to_s)
+          end
+          return
+        end
+        args.each do |name|
+          self.constraints << Constraint::Simple.new(name){|object,result|
+            if object.send("#{what}?")
+              result.errors << result._(:may_not_be,what.to_sym)
+            end
+          }
+        end
+      end
+      
+      def validate_is(what, *args)
+        if args.none?
+          annote do |meth|
+            validate_is(what, meth.to_s)
+          end
+          return
+        end
+        args.each do |name|
+          self.constraints << Constraint::Simple.new(name){|object,result|
+            if object.send("#{what}?")
+              result.errors << result._(:must_be,what.to_sym)
+            end
+          }
+        end
+      end
+      
       def validate_not_nil(*args)
         if args.none?
           annote do |meth|

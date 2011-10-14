@@ -140,7 +140,7 @@ CODE
         end
         return o
       end
-      
+=begin
       def new_with_defaults(*args,&block)
         o = self.allocate
         o.attributes.complete!
@@ -158,6 +158,8 @@ CODE
         return o
       end
       
+      alias new new_with_defaults
+=end
       def to_saveable(value)
         value = value.to_raw unless value.nil?
         value = super(value) if defined? super

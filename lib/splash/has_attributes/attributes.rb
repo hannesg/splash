@@ -18,6 +18,8 @@ module Splash
   module HasAttributes
     class Attributes < BSON::OrderedHash
       
+      KEY_REGEX = /^attribute_([a-z_]*)_type$/.freeze
+      
       include HasAttributes::GeneratesUpdates
       
       alias_method :read, :[]
@@ -49,9 +51,9 @@ module Splash
       def [](key)
         @sync.synchronize(Sync::SH){
         return ::NA if( @deleted_keys.include? key )
-        return self.read(key) if( self.key? key )
+        return self.read(key) if( self.key_present? key )
           @sync.synchronize(Sync::EX){
-            return super if( self.key? key )
+            return self.read(key) if( self.key_present? key )
             if( @raw.key? key )
               value = @class.attribute_persister(key).from_saveable(@raw[key])
             else
@@ -68,9 +70,27 @@ module Splash
         }
       end
       
+      alias key_without_magic? key?
+      
       def key?(k)
         return false if @deleted_keys.include? k
-        return super
+        return true if super
+        return default_defined?(k)
+      end
+      
+      def key_present?(k)
+        return false if @deleted_keys.include? k
+        return key_without_magic?(k)
+      end
+      
+      def keys
+        k = super
+        @class.methods do |meth|
+          if meth =~ KEY_REGEX
+            meth << $1
+          end
+        end
+        return k.uniq
       end
       
       def []=(key,value)
@@ -95,6 +115,8 @@ module Splash
         @raw = {}
         @sync = Sync::Dummy.new
         @deleted_keys = Set.new
+        @complete_before_write = true
+        @completed = false
         #complete!
       end
       
@@ -127,27 +149,55 @@ module Splash
         return self
       end
       
+      def ignore_defaults!
+        @complete_before_write = false
+      end
+      
+      def default_defined?(key)
+        return @class.respond_to?("attribute_#{key}_default".to_sym)
+      end
+      
+      def defined?(key)
+        return @class.respond_to?("attribute_#{key}_type".to_sym)
+      end
+      
+=begin
+      def each
+        keys.each do |key|
+          yield(key,self[key])
+        end
+      end
+=end
+      def inspect
+        complete!
+        super
+      end 
+
       protected
         def complete!
+          return self if @completed
           keys = Set.new
           matcher = /^attribute_([a-z_]+)_default$/
-          @class.methods do |meth|
-            if match = matcher.match(meth.to_s)
-              a = match.to_a
-              unless @not_given.include?(a[1]) or self.key?(a[1])
-                self[a[1]]=@class.send(meth)
+          @class.methods.each do |meth|
+            if matcher =~ meth.to_s
+              unless @deleted_keys.include?($1) or self.key_present?($1)
+                self[$1]
               end
             end
           end
+          @completed = true
           return self
         end
         
         def flush!
           self.replace({})
           @deleted_keys = Set.new
+          @completed = false
+          @complete_before_write = true
         end
         
         def write_into!(target={})
+          complete! if @complete_before_write
           self.each do |key,value|
             target[key]=@class.attribute_persister(key).to_saveable(value)
           end

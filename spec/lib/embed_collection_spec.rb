@@ -133,6 +133,10 @@ describe Splash::EmbededCollection do
     
     puts DocumentWithEmbeds1.to_a.inspect
     
+    DocumentWithEmbeds1.first.comments.each do |com|
+      puts com.body.inspect
+    end
+    
     
   end
   

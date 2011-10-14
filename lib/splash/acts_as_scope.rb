@@ -223,6 +223,18 @@ module Splash
       sc.close
       return result
     end
+    
+    def empty?
+      return !exists?
+    end
+    
+    def any?(&block)
+      if block_given?
+        Enumerable::Enumerator.new(self).any?(&block)
+      else
+        return exists?
+      end
+    end
 
     protected
       

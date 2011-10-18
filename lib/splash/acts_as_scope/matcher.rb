@@ -92,12 +92,6 @@ module Splash::ActsAsScope
       return true
     end
     
-    def matches_any?(array)
-      array.any? do |obj|
-        self.matches? obj
-      end
-    end
-    
     def self.cast(hsh)
       return hsh if hsh.kind_of? Matcher
       return self.new.update(hsh) if hsh.kind_of? Hash
@@ -150,6 +144,10 @@ module Splash::ActsAsScope
       Matcher.cast({
         OR => (self.dnf + other.dnf)
       })
+    end
+    
+    def to_proc
+      method(:matches?).to_proc
     end
     
     def dnf

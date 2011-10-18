@@ -53,11 +53,15 @@ class Splash::EmbededCollection
   
   class Cursor
     
+    SELECT_ALL = lambda{|x| true }
+    
     def initialize(arr,options)
       @array = arr
       @position = 0
       @has_more = true
       @limit = options[:limit] || -1
+      @selector = options[:selector]
+      @seeked = false
     end
     
     def limit
@@ -68,18 +72,28 @@ class Splash::EmbededCollection
      
     end
     
-    def next_document
-      doc = @array[@position]
-      if doc.nil? or @position == @limit
-        @has_more = false
+    def seek_next_valid!
+      return true if @seeked
+      until @array[@position].nil? or @position >= @limit or @selector.call(@array[@position])
+        @position += 1
       end
-      @position += 1
+      @seeked = true
+      return !(@array[@position].nil? or @position >= @limit)
+    end
+    
+    def invalidate_seeked!
+      @seeked = false
+    end
+    
+    def next_document
+      return nil unless seek_next_valid!
+      doc = @array[@position]
+      invalidate_seeked!
       return doc
     end
     
     def has_next?
-      return false unless @has_more
-      return !@array[@position].nil?
+      return seek_next_valid!
     end
     
     def each
@@ -89,7 +103,7 @@ class Splash::EmbededCollection
     end
     
     def count
-      @array.size
+      @array.count(&@selector)
     end
     
   end
@@ -111,9 +125,9 @@ class Splash::EmbededCollection
       skip = options[:skip] || 0
       limit = options[:limit] || -1
       if skip == 0 and limit == -1
-        return Cursor.new(@loaded,{:limit=>limit})
+        return Cursor.new(@loaded,{:limit=>limit, :selector=>Splash::ActsAsScope::Matcher.cast(selector)})
       end
-      return Cursor.new(@loaded[skip..(skip + limit)],{:limit=>limit})
+      return Cursor.new(@loaded[skip..(skip + limit)],{:limit=>limit, :selector=>Matcher.cast(selector)})
     end
     
   end

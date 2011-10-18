@@ -140,4 +140,20 @@ describe Splash::EmbededCollection do
     
   end
   
+  describe "slices" do
+  
+    it "should be queryable" do
+    
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+    Splash::Namespace.debug do
+      dwe = DocumentWithEmbeds1.first
+    
+      dwe.comments.should have(2).items
+    
+      dwe.comments.conditions('x' => 1).should have(1).item
+    end
+    end
+  
+  end
+  
 end

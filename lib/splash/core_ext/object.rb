@@ -15,9 +15,16 @@
 #    (c) 2010 by Hannes Georg
 #
 require 'facets/na'
+require 'facets/object/dup'
 class Object
   
-  alias_method :deep_clone, :clone
+  def deep_clone
+    if clone?
+      clone
+    else
+      self
+    end
+  end
   
   def given?
     available? && !nil?

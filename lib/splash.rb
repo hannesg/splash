@@ -19,7 +19,7 @@ require "cautious"
 require "combineable"
 require "mongo"
 
-Dir[File.join(File.dirname(__FILE__),"/standart_extensions/**/*.rb")].each do |path|
+Dir[File.join(File.dirname(__FILE__),"/splash/core_ext/**/*.rb")].each do |path|
   require path
 end
 

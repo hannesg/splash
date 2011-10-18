@@ -53,14 +53,15 @@ class Splash::EmbededCollection
   
   class Cursor
     
+    INFINITE = -1
     SELECT_ALL = lambda{|x| true }
     
     def initialize(arr,options)
       @array = arr
       @position = 0
       @has_more = true
-      @limit = options[:limit] || -1
-      @selector = options[:selector]
+      @limit = options[:limit] || INFINITE
+      @selector = options[:selector].respond_to?(:to_proc) ? options[:selector].to_proc : SELECT_ALL
       @seeked = false
     end
     
@@ -74,15 +75,17 @@ class Splash::EmbededCollection
     
     def seek_next_valid!
       return true if @seeked
-      until @array[@position].nil? or @position >= @limit or @selector.call(@array[@position])
+      until @array[@position].nil? or ( @limit != INFINITE and @position >= @limit ) or @selector.call(@array[@position])
         @position += 1
       end
       @seeked = true
-      return !(@array[@position].nil? or @position >= @limit)
+      return !(@array[@position].nil? or ( @limit != INFINITE and @position >= @limit ))
     end
     
     def invalidate_seeked!
+      return unless @seeked
       @seeked = false
+      @position += 1
     end
     
     def next_document
@@ -97,8 +100,12 @@ class Splash::EmbededCollection
     end
     
     def each
-      while( has_next? )
-        yield next_document
+      if block_given?
+        while( has_next? )
+          yield next_document
+        end
+      else
+        return Enumerator.new(self)
       end
     end
     

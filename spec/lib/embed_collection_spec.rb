@@ -16,6 +16,13 @@
 #
 require File.expand_path(File.join(File.dirname(__FILE__),"../helper"))
 
+module X
+  def answer
+    4
+  end
+end
+
+
 describe Splash::EmbededCollection do
   
   it "should work in a trivial case" do
@@ -123,20 +130,23 @@ describe Splash::EmbededCollection do
     
     #dd.store!
     
-    puts DocumentWithEmbeds1.first.inspect
-    
-    
     doc = DocumentWithEmbeds1.create(
       'body' => 'bla',
       'comments' => [ DocumentWithEmbeds1::Comment.new('body'=>'blub') ]
     )
     
-    puts DocumentWithEmbeds1.to_a.inspect
     
-    DocumentWithEmbeds1.first.comments.each do |com|
-      puts com.body.inspect
+    yielder = lambda{}
+    
+    
+    com = []
+    
+    DocumentWithEmbeds1.first.comments.should have(2).items
+    DocumentWithEmbeds1.first.comments.each do |comment|
+      com << comment
     end
     
+    com.should have(2).items
     
   end
   
@@ -145,13 +155,23 @@ describe Splash::EmbededCollection do
     it "should be queryable" do
     
       DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
-    Splash::Namespace.debug do
+
       dwe = DocumentWithEmbeds1.first
     
       dwe.comments.should have(2).items
     
       dwe.comments.conditions('x' => 1).should have(1).item
+
     end
+    
+    it "should be a scope root" do
+    
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      
+      dwe = DocumentWithEmbeds1.first
+      
+      dwe.comments.should be_scope_root
+    
     end
   
   end

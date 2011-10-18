@@ -61,8 +61,10 @@ class Splash::EmbededCollection
       @position = 0
       @has_more = true
       @limit = options[:limit] || INFINITE
+      @skip = options[:skip] || 0
       @selector = options[:selector].respond_to?(:to_proc) ? options[:selector].to_proc : SELECT_ALL
       @seeked = false
+      @found = 0
     end
     
     def limit
@@ -75,17 +77,30 @@ class Splash::EmbededCollection
     
     def seek_next_valid!
       return true if @seeked
-      until @array[@position].nil? or ( @limit != INFINITE and @position >= @limit ) or @selector.call(@array[@position])
+      
+      loop do
+      
+        return false if backend_is_empty?
+        if @selector.call(@array[@position])
+          @found += 1
+        end
+        if (@found > @skip)
+          @seeked = true
+          return true
+        end
         @position += 1
+        
       end
-      @seeked = true
-      return !(@array[@position].nil? or ( @limit != INFINITE and @position >= @limit ))
     end
     
     def invalidate_seeked!
       return unless @seeked
       @seeked = false
       @position += 1
+    end
+    
+    def backend_is_empty?
+      return ( @array[@position].nil? or ( @limit != INFINITE and (@found - @skip) >= @limit ) )
     end
     
     def next_document
@@ -109,8 +124,21 @@ class Splash::EmbededCollection
       end
     end
     
+    #TODO: optimize this
     def count
-      @array.count(&@selector)
+      if @limit != INFINITE
+        
+        found = -@skip
+        
+        @array.each do |item|
+          found +=1 if @selector.call(item)
+          break if found == @limit
+        end
+        
+        return [found, 0].max
+      else
+        return [@array.count(&@selector) - @skip, 0].max
+      end
     end
     
   end
@@ -129,12 +157,7 @@ class Splash::EmbededCollection
     end
     
     def find(selector={},options={})
-      skip = options[:skip] || 0
-      limit = options[:limit] || -1
-      if skip == 0 and limit == -1
-        return Cursor.new(@loaded,{:limit=>limit, :selector=>Splash::ActsAsScope::Matcher.cast(selector)})
-      end
-      return Cursor.new(@loaded[skip..(skip + limit)],{:limit=>limit, :selector=>Matcher.cast(selector)})
+      return Cursor.new(@loaded,options.merge( :selector=>Splash::ActsAsScope::Matcher.cast(selector) ))
     end
     
   end

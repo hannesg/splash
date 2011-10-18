@@ -173,6 +173,19 @@ describe Splash::EmbededCollection do
       dwe.comments.should be_scope_root
     
     end
+    
+    it "should support skip and selectors" do
+    
+      DocumentWithEmbeds1.create("comments"=>(1..50).map{|x| DocumentWithEmbeds1::Comment.new('x'=>x) } )
+      
+      dwe = DocumentWithEmbeds1.first
+      
+      com = dwe.comments.conditions('x'=>{'$gt'=>10}).query(:skip=>10,:limit=>20)
+      com.should have(20).items
+      
+      com.collect(&:x).should == (21..40).to_a
+    
+    end
   
   end
   

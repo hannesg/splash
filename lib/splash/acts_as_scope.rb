@@ -81,7 +81,19 @@ module Splash
     CHUNK_SIZE = 10
     
     def each_unchunked(&block)
+      if !block
+        return Enumerator.new(self,:each_unchunked)
+      end
+    
       a = block.arity.abs
+      
+      if a == 2
+        old_block = block
+        block = lambda{|object| old_block.call(object._id,object) }
+      elsif a != 1
+        raise "Expected block to have an arity of +-1 or +-2, but got #{block.inspect} (arity: #{block.arity.inspect})"
+      end
+      
       num_returned = 0
       cursor = self.clone.scope_cursor
       eigenpersister = self.scope_root.eigenpersister
@@ -92,15 +104,7 @@ module Splash
           doc = eigenpersister.from_saveable( cursor.next_document )
           num_returned += 1
           remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
-          if a == 1
-            last = chunk.each(&block)
-          elsif a == 2
-            chunk.each do |o|
-              last = block.call(o._id,o.value)
-            end
-          else
-            raise "Expected block to have an arity of 1 or 2, but got #{block.inspect} (arity: #{a.inspect})"
-          end
+          last = block.call(doc)
         end
       ensure
         cursor.close()
@@ -114,30 +118,32 @@ module Splash
       if chunk_size <= 1 or !batch
         return each_unchunked(&block)
       end
-    
+      
+      if !block
+        return Enumerator.new(self,:each_chunked,chunk_size)
+      end
+      
       a = block.arity.abs
       
-      chunk = []
+      if a == 2
+        block = lambda{|object| block.call(object._id,object) }
+      elsif a != 1
+        raise "Expected block to have an arity of 1 or 2, but got #{block.inspect} (arity: #{a.inspect})"
+      end
+      
       num_returned = 0
       cursor = self.clone.scope_cursor
       last = nil
       remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
       begin
+        chunk = []
         while remaining
           chunk << cursor.next_document
           num_returned += 1
           remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
           if chunk.size == chunk_size or !remaining
             chunk = eigenpersister.from_saveable_batch(chunk)
-            if a == 1
-              last = chunk.each(&block)
-            elsif a == 2
-              chunk.each do |o|
-                last = block.call(o._id,o.value)
-              end
-            else
-              raise "Expected block to have an arity of 1 or 2, but got #{block.inspect} (arity: #{a.inspect})"
-            end
+            last = chunk.each(&block)
             chunk = []
           end
         end

@@ -193,4 +193,27 @@ describe Splash::ActsAsScope do
     
   end
   
+  describe "enumerability" do
+  
+    it "should be mapable" do
+      
+      class Nerd
+        
+        include Splash::Document
+        
+        attribute 'age', Integer
+        
+      end
+      
+      Nerd.new('age'=>13).store!
+      Nerd.new('age'=>16).store!
+      Nerd.new('age'=>17).store!
+      Nerd.new('age'=>21).store!
+      
+      Nerd.collect(&:age).should == [13,16,17,21]
+      
+    end
+  
+  end
+  
 end

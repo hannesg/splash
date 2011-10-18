@@ -19,6 +19,8 @@ module Splash
     
     autoload_all File.join(File.dirname(__FILE__),'acts_as_scope')
     
+    include Enumerable
+    
     module ArraylikeAccess
       def [](*args)
         if args.size == 1
@@ -78,15 +80,47 @@ module Splash
     
     CHUNK_SIZE = 10
     
-    def each(chunk_size=CHUNK_SIZE, &block)
-      a = block.arity
+    def each_unchunked(&block)
+      a = block.arity.abs
+      num_returned = 0
+      cursor = self.clone.scope_cursor
+      eigenpersister = self.scope_root.eigenpersister
+      last = nil
+      remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
+      begin
+        while remaining
+          doc = eigenpersister.from_saveable( cursor.next_document )
+          num_returned += 1
+          remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
+          if a == 1
+            last = chunk.each(&block)
+          elsif a == 2
+            chunk.each do |o|
+              last = block.call(o._id,o.value)
+            end
+          else
+            raise "Expected block to have an arity of 1 or 2, but got #{block.inspect} (arity: #{a.inspect})"
+          end
+        end
+      ensure
+        cursor.close()
+      end
+      return last
+    end
+    
+    def each_chunked(chunk_size=CHUNK_SIZE, &block)
+      eigenpersister = self.scope_root.eigenpersister
+      batch = eigenpersister.respond_to? :from_saveable_batch
+      if chunk_size <= 1 or !batch
+        return each_unchunked(&block)
+      end
+    
+      a = block.arity.abs
       
       chunk = []
       num_returned = 0
       cursor = self.clone.scope_cursor
-      eigenpersister = self.scope_root.eigenpersister
-      batch = eigenpersister.respond_to? :from_saveable_batch
-      
+      last = nil
       remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
       begin
         while remaining
@@ -94,19 +128,15 @@ module Splash
           num_returned += 1
           remaining = (cursor.has_next? && (cursor.limit <= 0 || num_returned < cursor.limit))
           if chunk.size == chunk_size or !remaining
-            if batch
-              chunk = eigenpersister.from_saveable_batch(chunk)
-            else
-              chunk = chunk.map{|obj| eigenpersister.from_saveable(obj)}
-            end
+            chunk = eigenpersister.from_saveable_batch(chunk)
             if a == 1
-              chunk.each do |o|
-                yield o
-              end
+              last = chunk.each(&block)
             elsif a == 2
               chunk.each do |o|
-                yield(o._id,o.value)
+                last = block.call(o._id,o.value)
               end
+            else
+              raise "Expected block to have an arity of 1 or 2, but got #{block.inspect} (arity: #{a.inspect})"
             end
             chunk = []
           end
@@ -114,8 +144,10 @@ module Splash
       ensure
         cursor.close()
       end
-      self
+      return last
     end
+    
+    alias each each_chunked
     
     def to_a
       result = []

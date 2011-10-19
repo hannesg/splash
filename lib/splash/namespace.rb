@@ -166,6 +166,10 @@ module Splash
     
     def class_for(collection_name)
       begin
+        if collection_name.include? ':'
+          collection_name, embed_name = collection_name.split(':',2)
+          return class_for(collection_name).embedded_class(embed_name)
+        end
         return collection_to_class_name(collection_name).split('::').inject(Kernel) do |memo,obj|
           memo.const_get(obj)
         end

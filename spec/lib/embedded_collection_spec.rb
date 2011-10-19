@@ -231,4 +231,20 @@ describe Splash::EmbeddedCollection do
   
   end
   
+  describe "collection names" do
+  
+    it "should work" do
+    
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1) ] )
+    
+      ref = DocumentWithEmbeds1::Comment.first._dbref
+      
+      Splash::Namespace.default.class_for(ref.namespace).should == DocumentWithEmbeds1::Comment
+      
+      DocumentWithEmbeds1::Comment.persister.from_saveable(ref.to_s).should == DocumentWithEmbeds1::Comment.first
+      
+    end
+  
+  end
+  
 end

@@ -21,9 +21,20 @@ module Splash
     
     module ClassMethods
       
+      def embedded_class(name)
+        @embeds ||= {}
+        return @embeds[name]
+      end
+      
       def embeds(name,options={})
+        
         klass = options[:class] #|| self.collection.embed(name)
-
+        
+        #TODO: should this be inheritable?
+        @embeds ||= {}
+        
+        @embeds[name]= klass
+        
         if self.respond_to? :attribute
           self.attribute(name, EmbeddedCollection.of(klass)) do
             default :new

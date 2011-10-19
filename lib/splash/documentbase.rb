@@ -18,7 +18,8 @@ module Splash::Documentbase
   
   class Persister
   
-    DBREF = /^ns: ([A-Za-z0-9_\.]+), id: ([0-9a-f]{24})$/.freeze
+    # NOTE: the : in a collection name is a custom extension
+    DBREF = /^ns: ([A-Za-z0-9_\.:]+), id: ([0-9a-f]{24})$/.freeze
     OBJECTID = /[0-9a-f]{24}$/.freeze
   
     def to_saveable(value)

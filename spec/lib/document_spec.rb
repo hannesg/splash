@@ -18,6 +18,20 @@ describe Splash::Document do
     DocumentAX.conditions( 'foo' => 100 ).should_not be_empty
     
   end
+  
+  it "should be able to work around jsonated dbrefs" do
+  
+    class DocumentBX
+  
+      include Splash::Document
+      
+    end
+    
+    doc = DocumentBX.new('bla' => 'blub').store!
+    
+    DocumentBX.persister.from_saveable(doc._dbref.to_s).should == doc
+    
+  end
 
 
 end

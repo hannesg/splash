@@ -29,8 +29,11 @@ class Splash::EmbeddedCollection
         if e.kind_of? entry_class
           e.demand_id!
           @entry_persister.to_saveable(e)
-        else
+        elsif e.kind_of? Hash
+          entry_class.ensure_id!(e)
           e
+        else
+          return nil
         end
       }
     end
@@ -250,6 +253,8 @@ class Splash::EmbeddedCollection
     end
     
   end
+
+  attr_reader :pk_factory
 
   def initialize(path, basecollection)
     raise "Path must be a kind of String but got #{path.inspect}" unless path.kind_of? String

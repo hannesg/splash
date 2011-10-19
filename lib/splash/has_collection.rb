@@ -50,7 +50,9 @@ module Splash
     end
     
     def demand_id!
-      self._id ||= self.class.collection.pk_factory.create_pk(self.class.eigenpersister.to_saveable(self))[:_id]
+      unless self._id.given?
+        self._id = self.class.collection.pk_factory.create_pk(self.class.eigenpersister.to_saveable(self))[:_id]
+      end
       return self._id
     end
     
@@ -66,6 +68,15 @@ module Splash
     alias eql? ==
     
     module ClassMethods
+      
+      def ensure_id!(hash)
+        self.collection.pk_factory.create_pk(hash)
+        if hash[:_id]
+          hash['_id'] = hash.delete(:_id)
+        end
+        return hash['_id']
+      end
+    
       def <<(obj)
         super(obj) if defined? super
         obj.store!

@@ -138,7 +138,6 @@ describe Splash::EmbeddedCollection do
     
     yielder = lambda{}
     
-    
     com = []
     
     DocumentWithEmbeds1.first.comments.should have(2).items
@@ -147,6 +146,13 @@ describe Splash::EmbeddedCollection do
     end
     
     com.should have(2).items
+    
+    DocumentWithEmbeds1::Comment.collection.find.each do |comment|
+    
+      comment['_id'].should be_kind_of(BSON::ObjectId)
+      DocumentWithEmbeds1::Comment.conditions('_id'=>comment['_id']).to_a.should have(1).item
+    
+    end
     
   end
   

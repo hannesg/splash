@@ -39,7 +39,7 @@ module Splash
     alias_method :find_document, :find_one
     
     def embed(path)
-      return EmbededCollection.new(path,self)
+      return EmbeddedCollection.new(path,self)
     end
     
   

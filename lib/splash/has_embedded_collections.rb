@@ -15,7 +15,7 @@
 #    (c) 2010 by Hannes Georg
 #
 module Splash
-  module HasEmbededCollections
+  module HasEmbeddedCollections
     
     extend Cautious
     
@@ -25,7 +25,7 @@ module Splash
         klass = options[:class] #|| self.collection.embed(name)
 
         if self.respond_to? :attribute
-          self.attribute(name, EmbededCollection.of(klass)) do
+          self.attribute(name, EmbeddedCollection.of(klass)) do
             default :new
           end
         end

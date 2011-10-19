@@ -14,7 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-class Splash::EmbededCollection
+class Splash::EmbeddedCollection
   
   class Persister < Array::Persister
   
@@ -40,7 +40,7 @@ class Splash::EmbededCollection
   module CollectionExtension
   
     def persister
-      return Splash::EmbededCollection::Persister.new(self, self.entry_class.eigenpersister)
+      return Splash::EmbeddedCollection::Persister.new(self, self.entry_class.eigenpersister)
     end
   
   end
@@ -50,68 +50,125 @@ class Splash::EmbededCollection
     c.extend(CollectionExtension)
     return c
   end
-  
+
   class Cursor
+
+    class Array < self
     
+      def initialize(arr,options)
+        @array = arr
+        @position = 0
+        super(options)
+      end
+      
+    protected
+      def backend_current
+        @array[@position]
+      end
+      
+      def backend_next!
+        @position += 1
+      end
+      
+      def backend_is_empty?
+        return @array[@position].nil?
+      end
+      
+      def backend_close!
+      
+      end
+    
+      def backend_rewind!
+        @position = 0
+      end
+    
+    end
+    
+    class EmbeddedArray < self
+    
+      def initialize(base_cursor, path, options)
+        @base_cursor = base_cursor
+        @path = path
+        @current = []
+        @current_position = 0
+        super(options)
+      end
+      
+    protected
+    
+      def backend_current
+        while @current[@current_position].nil? and @base_cursor.has_next?
+          doc = @base_cursor.next_document
+          @current = Splash::DotNotation.get(doc, @path) || []
+          @current_owner = BSON::DBRef.new(@base_cursor.collection.name,doc['_id'])
+          @current_position = 0
+        end
+        @current[@current_position].update('_owner'=>@current_owner)
+        return @current[@current_position]
+      end
+      
+      def backend_next!
+        @current_position += 1
+      end
+    
+      def backend_is_empty?
+        return @current[@current_position].nil? && !@base_cursor.has_next?
+      end
+      
+      def backend_close!
+        @base_cursor.close
+      end
+      
+      def backend_rewind!
+        @current = []
+        @current_position = 0
+        @base_cursor.rewind!
+      end
+    
+    end
+
     INFINITE = -1
     SELECT_ALL = lambda{|x| true }
     
-    def initialize(arr,options)
-      @array = arr
-      @position = 0
+    include Enumerable
+    
+    attr_reader :limit
+    
+    def initialize(options)
       @has_more = true
       @limit = options[:limit] || INFINITE
       @skip = options[:skip] || 0
       @selector = options[:selector].respond_to?(:to_proc) ? options[:selector].to_proc : SELECT_ALL
       @seeked = false
       @found = 0
-    end
-    
-    def limit
-      @limit
+      @queue = []
     end
     
     def close
-     
-    end
-    
-    def seek_next_valid!
-      return true if @seeked
-      
-      loop do
-      
-        return false if backend_is_empty?
-        if @selector.call(@array[@position])
-          @found += 1
-        end
-        if (@found > @skip)
-          @seeked = true
-          return true
-        end
-        @position += 1
-        
-      end
-    end
-    
-    def invalidate_seeked!
-      return unless @seeked
-      @seeked = false
-      @position += 1
-    end
-    
-    def backend_is_empty?
-      return ( @array[@position].nil? or ( @limit != INFINITE and (@found - @skip) >= @limit ) )
+      backend_close!
     end
     
     def next_document
+      return @queue.shift if @queue.any?
       return nil unless seek_next_valid!
-      doc = @array[@position]
+      doc = backend_current
       invalidate_seeked!
       return doc
     end
     
     def has_next?
+      return true if @queue.any?
       return seek_next_valid!
+    end
+    
+    def limit_reached?
+      return false if @limit == INFINITE
+      return (@found - @skip) >= @limit
+    end
+    
+    def rewind!
+      @found = 0
+      backend_rewind!
     end
     
     def each
@@ -126,23 +183,55 @@ class Splash::EmbededCollection
     
     #TODO: optimize this
     def count
-      if @limit != INFINITE
-        
-        found = -@skip
-        
-        @array.each do |item|
-          found +=1 if @selector.call(item)
-          break if found == @limit
+      preload!
+      return [@found - @skip, 0].max
+    end
+    
+  protected
+    
+    def preload!(limit=INFINITE)
+      loop do
+        return if limit_reached? or backend_is_empty?
+        return if @queue.size == limit
+        okay = @selector.call(backend_current)
+        if okay
+          @found += 1
         end
-        
-        return [found, 0].max
-      else
-        return [@array.count(&@selector) - @skip, 0].max
+        if( okay && @found > @skip )
+          @queue.push(backend_current)
+        end
+        backend_next!
       end
+    end
+    
+    def seek_next_valid!
+      return true if @queue.any?
+      return true if @seeked
+      okay = false
+      
+      loop do
+        return false if limit_reached? or backend_is_empty?
+        okay = @selector.call(backend_current)
+        if okay
+          @found += 1
+        end
+        if( okay && @found > @skip )
+          @seeked = true
+          return true
+        end
+        backend_next!
+      end
+    end
+    
+    def invalidate_seeked!
+      return unless @seeked
+      @seeked = false
+      backend_next!
     end
     
   end
   
+
   class Slice < self
     
     def initialize(path, basecollection, id, loaded = [])
@@ -157,16 +246,11 @@ class Splash::EmbededCollection
     end
     
     def find(selector={},options={})
-      return Cursor.new(@loaded,options.merge( :selector=>Splash::ActsAsScope::Matcher.cast(selector) ))
+      return Cursor::Array.new(@loaded,options.merge( :selector=>Splash::ActsAsScope::Matcher.cast(selector) ))
     end
     
   end
 
-  REDUCE = '
-function(key,result){
-  return result[0];
-}
-'
   def initialize(path, basecollection)
     raise "Path must be a kind of String but got #{path.inspect}" unless path.kind_of? String
     @basecollection, @path = basecollection, path
@@ -207,26 +291,16 @@ function(key,result){
     self.update({'_id'=>id}, updates, options)
   end
   
+  def find(selector={},options={})
+    Cursor::EmbeddedArray.new( @basecollection.find( rekey_selector(selector), options ), @path, options.merge(:selector => Splash::ActsAsScope::Matcher.cast(selector)) )
+  end
+  
   def delete_document(id)
     @basecollection.update(rekey_selector({'_id'=>id}), {'$pull'=>{@path=>{'_id'=>id}}} )
   end
   
   def find_document(id)
-      map = "
-function(){
-  var docid = this._id;
-  this[#{@path.inspect}].forEach(function(doc){
-    if( ObjectId(#{id.to_s.inspect}).equals(doc._id) ){
-      emit(docid,doc);
-    }
-  });
-}"
-    result = @basecollection.map_reduce(map,REDUCE,:query=>rekey_selector({'_id'=>id}),:out=>{:inline=>1},:raw=>1 )
-    doc = result["results"][0]
-    return nil if doc.nil?
-    value = doc['value']
-    value['_owner'] = BSON::DBRef.new(@basecollection.name,doc['_id'])
-    return value
+    return find('_id'=>id).next_document
   end
   
   def slice(id,values=[])

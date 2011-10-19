@@ -23,12 +23,12 @@ module X
 end
 
 
-describe Splash::EmbededCollection do
+describe Splash::EmbeddedCollection do
   
   it "should work in a trivial case" do
     
     base = Splash::Namespace.default.collection('embed_base')
-    embed = Splash::EmbededCollection.new('embeds',base)
+    embed = Splash::EmbeddedCollection.new('embeds',base)
     
     doc = {'embeds'=>[
        {'_id'=>BSON::ObjectId.new(),'text'=>'Not Me','rating'=>4},
@@ -68,7 +68,7 @@ describe Splash::EmbededCollection do
   it "should support DBRefs" do
     
     base = Splash::Namespace.default.collection('embed_base')
-    embed = Splash::EmbededCollection.new('embeds', base)
+    embed = Splash::EmbeddedCollection.new('embeds', base)
     
     doc = {'embeds'=>[
        {'_id'=>BSON::ObjectId.new(),'text'=>'Not Me'},
@@ -95,7 +95,7 @@ describe Splash::EmbededCollection do
     class DocumentWithEmbeds1
       
       include Splash::Document
-      include Splash::HasEmbededCollections
+      include Splash::HasEmbeddedCollections
       
       class Comment
         
@@ -147,6 +147,42 @@ describe Splash::EmbededCollection do
     end
     
     com.should have(2).items
+    
+  end
+  
+  describe "standalone" do
+    
+    it "should be queryable" do
+    
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      
+      DocumentWithEmbeds1::Comment.conditions('x'=>2).to_a.should have(3).items
+    
+      DocumentWithEmbeds1::Comment.conditions('x'=>2).size.should == 3
+    
+    end
+    
+    it "should be rewindable" do
+    
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      DocumentWithEmbeds1.create("comments"=>[ DocumentWithEmbeds1::Comment.new('x'=>1),DocumentWithEmbeds1::Comment.new('x'=>2) ] )
+      
+      
+      cur = DocumentWithEmbeds1::Comment.collection.find('x'=>2)
+      
+      cur.collect{ |d| d['x'] }.should == [2,2,2]
+    
+      cur.collect{ |d| d['x'] }.should == []
+      
+      cur.rewind!
+      
+      cur.collect{ |d| d['x'] }.should == [2,2,2]
+    
+    end
+    
     
   end
   

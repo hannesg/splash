@@ -198,7 +198,7 @@ module Splash
       raise ArgumentError, "name must be a String but got #{name.inspect}" unless name.kind_of? String
       if name.include? ':'
         base, path = name.split(':')
-        return Splash::EmbededCollection.new(path, self.collection(base))
+        return Splash::EmbeddedCollection.new(path, self.collection(base))
       end
       Splash::Collection.new(name, self)#@db.collection(name)
     end

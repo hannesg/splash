@@ -38,9 +38,9 @@ describe Splash::HasAttributes do
     
     end
     
-    Tweedledum.should respond_to(:attribute_size_type)
+    Tweedledum.should respond_to(:_attribute_size_type)
     
-    Tweedledee.should_not respond_to(:attribute_size_type)
+    Tweedledee.should_not respond_to(:_attribute_size_type)
     
     
   end
@@ -246,6 +246,32 @@ describe Splash::HasAttributes do
     end
     
     
+  end
+  
+  describe 'setter' do
+  
+    it 'should work' do
+      
+      class AttributeWithSetters
+      
+        include Splash::HasAttributes
+        
+        attribute 'number', Integer do
+        
+          setter{ |value| value.to_i }
+        
+        end
+        
+      end
+      
+      a = AttributeWithSetters.new
+      
+      a.number = "1337"
+      
+      a.number.should == 1337
+      
+    end
+  
   end
   
   describe 'updating' do

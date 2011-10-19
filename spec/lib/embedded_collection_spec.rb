@@ -156,6 +156,14 @@ describe Splash::EmbeddedCollection do
     
   end
   
+  it "should work" do
+  
+    doc = DocumentWithEmbeds1.new( {'body'=>'Nooooooice!'})
+    
+    doc.comments << DocumentWithEmbeds1::Comment.new('body'=>'bla')
+  
+  end
+  
   describe "standalone" do
     
     it "should be queryable" do

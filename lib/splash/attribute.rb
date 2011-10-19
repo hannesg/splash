@@ -20,9 +20,15 @@ class Splash::Attribute
     if block_given?
       set('default'){ block }
     elsif !fn.nil?
-      set('default'){ lambda{|obj| obj.send(fn,*args)} }
-    else
-      return self.type.instance_eval &(get('default'))
+      set('default'){ lambda{|type| type.send(fn,*args)} }
+    end
+  end
+  
+  def setter(fn=nil,*args,&block)
+    if block_given?
+      set('setter'){ block }
+    elsif !fn.nil?
+      set('setter'){ lambda{|obj| send(fn,obj,*args)} }
     end
   end
   
@@ -31,15 +37,15 @@ class Splash::Attribute
   end
   
   def has?(key)
-    @class.respond_to?("attribute_#{@name}_#{key}")
+    @class.respond_to?("_attribute_#{@name}_#{key}")
   end
   
   def get(key)
-    @class.send("attribute_#{@name}_#{key}")
+    @class.send("_attribute_#{@name}_#{key}")
   end
   
   def set(key,&block)
-    @setter.call("attribute_#{@name}_#{key}",&block)
+    @setter.call("_attribute_#{@name}_#{key}",&block)
   end
   
   def initialize(klass,name)
@@ -56,6 +62,12 @@ class Splash::Attribute
   
   def type= t
     self.persister = t.persister
+    if t.respond_to? :default
+      self.default(:default)
+    end
+    if t.respond_to? :try_convert
+      self.setter(:try_convert)
+    end
     @type = t
     set('type'){ t }
   end

@@ -122,6 +122,11 @@ module Splash::Documentbase
       self
     end
     
+    def try_convert(obj)
+      return obj if obj.kind_of? Splash::Documentbase
+      return persister.from_saveable(obj)
+    end
+    
   end
   
 end

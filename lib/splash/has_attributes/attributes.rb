@@ -18,7 +18,7 @@ module Splash
   module HasAttributes
     class Attributes < BSON::OrderedHash
       
-      KEY_REGEX = /^attribute_([a-z_]*)_type$/.freeze
+      KEY_REGEX = /^_attribute_([a-z_]*)_type$/.freeze
       
       include HasAttributes::GeneratesUpdates
       
@@ -98,7 +98,7 @@ module Splash
           if ::NA == value
             self.delete(key)
           else
-            self.write(key,value)
+            self.write(key,@class.attribute_setter(key,value))
             @deleted_keys.delete key
           end
         }
@@ -154,11 +154,11 @@ module Splash
       end
       
       def default_defined?(key)
-        return @class.respond_to?("attribute_#{key}_default".to_sym)
+        return @class.respond_to?("_attribute_#{key}_default".to_sym)
       end
       
       def defined?(key)
-        return @class.respond_to?("attribute_#{key}_type".to_sym)
+        return @class.respond_to?("_attribute_#{key}_type".to_sym)
       end
       
 =begin
@@ -177,7 +177,7 @@ module Splash
         def complete!
           return self if @completed
           keys = Set.new
-          matcher = /^attribute_([a-z_]+)_default$/
+          matcher = /^_attribute_([a-z_]+)_default$/
           @class.methods.each do |meth|
             if matcher =~ meth.to_s
               unless @deleted_keys.include?($1) or self.key_present?($1)

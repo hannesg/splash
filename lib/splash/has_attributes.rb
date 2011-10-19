@@ -114,22 +114,29 @@ CODE
       end
       
       def attribute_persister(name)
-        a = "attribute_#{name}_persister"
+        a = "_attribute_#{name}_persister"
         return Object unless self.respond_to? a
         return send(a)
       end
       
       def attribute_type(name)
-        a = "attribute_#{name}_type"
+        a = "_attribute_#{name}_type"
         return Object unless self.respond_to? a
         return send(a)
       end
       
       def attribute_default(name)
-        a = "attribute_#{name}_default"
+        a = "_attribute_#{name}_default"
         return ::NA unless self.respond_to?(a)
         method = self.send(a)
         return attribute_type(name).instance_eval &method
+      end
+      
+      def attribute_setter(name, value)
+        a = "_attribute_#{name}_setter"
+        return value unless self.respond_to?(a)
+        method = self.send(a)
+        return attribute_type(name).instance_exec(value, &method)
       end
       
       def from_raw(data,*args,&block)
@@ -140,26 +147,7 @@ CODE
         end
         return o
       end
-=begin
-      def new_with_defaults(*args,&block)
-        o = self.allocate
-        o.attributes.complete!
-        if o.respond_to?(:initialize,true)
-          o.send(:initialize,*args,&block)
-        end
-        return o
-      end
       
-      def new_without_defaults(*args,&block)
-        o = self.allocate
-        if o.respond_to?(:initialize,true)
-          o.send(:initialize,*args,&block)
-        end
-        return o
-      end
-      
-      alias new new_with_defaults
-=end
       def to_saveable(value)
         value = value.to_raw unless value.nil?
         value = super(value) if defined? super

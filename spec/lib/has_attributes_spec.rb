@@ -491,4 +491,32 @@ describe Splash::HasAttributes do
   
   end
   
+  describe "dupping" do
+  
+    it "should work in a trivial case" do
+    
+      a = Splash::AttributedStruct.new('a'=>"A")
+      
+      b = a.dup
+      
+      b.a = "B"
+      
+      a.a.should == "A"
+      
+    end
+    
+    it "should work with modifyable things" do
+    
+      a = Splash::AttributedStruct.new('a'=>[])
+      
+      b = a.dup
+      
+      b.a << "B"
+      
+      a.a.should == []
+      
+    end
+  
+  end
+  
 end

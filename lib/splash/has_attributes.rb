@@ -26,6 +26,8 @@ module Splash
     extend Cautious
     extend Combineable
     
+    include Dup
+    
     combined_with(HasCollection) do |base|
       base.class_eval do
         def save!

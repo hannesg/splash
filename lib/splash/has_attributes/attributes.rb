@@ -14,9 +14,10 @@
 #
 #    (c) 2010 by Hannes Georg
 #
+require 'facets/object/dup'
 module Splash
   module HasAttributes
-    class Attributes < BSON::OrderedHash
+    class Attributes < Hash
       
       KEY_REGEX = /^_attribute_([a-z_]*)_type$/.freeze
       
@@ -24,6 +25,21 @@ module Splash
       
       alias_method :read, :[]
       alias_method :write, :[]=
+      
+      def dup
+        d = super
+        d.instance_eval do
+          @deleted_keys = @deleted_keys.dup
+          @sync = @sync.dup
+          keys.each do |k|
+            v = self[k]
+            if v.dup? and !v.frozen?
+              self[k] = v.dup
+            end
+          end
+        end
+        return d
+      end
       
       def load(attrs)
         attrs.each do |key,value|
@@ -82,6 +98,8 @@ module Splash
         return false if @deleted_keys.include? k
         return key_without_magic?(k)
       end
+      
+      alias keys_without_magic keys
       
       def keys
         k = super

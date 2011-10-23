@@ -41,10 +41,11 @@ describe Splash::HasCollection do
       include Splash::HasCollection
       
       def _id
-        self["_id"]
+        self[:_id] || self["_id"]
       end
       
       def _id=(value)
+        self.delete(:_id)
         self["_id"]=value
       end
       
@@ -61,4 +62,82 @@ describe Splash::HasCollection do
     
   end
   
+  describe "as_new" do
+  
+    it "should work" do
+    
+      h = HashWithCollection['yx',1337]
+      
+      h.store!
+      
+      HashWithCollection.collection.count.should == 1
+      
+      f = h.as_new
+      
+      f.store!
+      
+      HashWithCollection.collection.count.should == 2
+    
+    end
+    
+    it "should work with an embedded collection" do
+    
+      class HasCollectionWithEmbeds < Hash
+      
+      
+        include Splash::HasCollection
+        include Splash::HasEmbeddedCollections
+        
+        class Comment
+        
+          include Splash::Document
+        
+          collection HasCollectionWithEmbeds.collection.embed('comments')
+        
+        end
+        
+        def _id
+          self[:_id] || self["_id"]
+        end
+        
+        def _id=(value)
+          self.delete(:_id)
+          self["_id"]=value
+        end
+        
+        def comments
+          self["comments"]
+        end
+        
+        embeds 'comments', :class => Comment
+      
+      end
+    
+      hc = HasCollectionWithEmbeds.new
+      hc.store!
+      
+      com = hc.comments.new.store!
+      
+      HasCollectionWithEmbeds::Comment.count.should == 1
+    
+      com2 = com.as_new
+      
+      com2.store!
+      
+      HasCollectionWithEmbeds::Comment.count.should == 2
+    
+      com3 = HasCollectionWithEmbeds::Comment.first.as_new
+      
+      com3.store!
+      
+      HasCollectionWithEmbeds::Comment.count.should == 3
+      
+      # looks ugly, but has_collection does not specify retrival
+      hc = HasCollectionWithEmbeds.new.update(HasCollectionWithEmbeds.collection.find_one)
+      
+      hc.comments.count.should == 3
+    
+    end
+  
+  end
 end

@@ -106,6 +106,9 @@ class Splash::EmbeddedCollection
           @current_owner = BSON::DBRef.new(@base_cursor.collection.name,doc['_id'])
           @current_position = 0
         end
+        if @current[@current_position].nil?
+          return nil
+        end
         @current[@current_position].update('_owner'=>@current_owner)
         return @current[@current_position]
       end
@@ -270,13 +273,15 @@ class Splash::EmbeddedCollection
     unless( doc.key? '_owner' )
       raise "I don't know where I should save the Embed #{doc.inspect}. Please provide a key '_owner'."
     end
+    doc.delete('_id')
+    doc.delete(:_id)
     doc = @pk_factory.create_pk(doc)
     owner = doc.delete('_owner')
     @basecollection.update({'_id'=>owner.object_id},{'$push'=>{@path=>doc}},options)
   end
   
   def save(doc,options={})
-    if doc.key? '_id'
+    if doc.key?('_id') and doc['_id']
       update_document(doc['_id'],doc.except('_owner'),:upsert => true, :safe => options[:safe])
     else
       insert(doc,:safe => options[:safe])

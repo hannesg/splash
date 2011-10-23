@@ -62,7 +62,17 @@ module Splash
     
     def hash
       demand_id!
+      #TODO: not a good idea!
+      # => should be more on collection base
       ( self.class.hash << 32 ) + self._id.hash
+    end
+    
+    # This method will create a clone of the current object,
+    # which will be saved as new document.
+    def as_new
+      c = self.dup
+      c._id = nil
+      return c
     end
     
     alias eql? ==

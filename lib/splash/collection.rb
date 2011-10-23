@@ -20,6 +20,7 @@ module Splash
   
     def initialize(name, namespace)
       @namespace = namespace
+      @logger = Namespace::LoggerDelegator.new
       super(name, namespace.db)
     end
     

@@ -41,9 +41,11 @@ module Splash
           end
         end
 
+        meth = self.instance_method(name.to_sym)
+
         self.send(:define_method,name.to_sym) do
           thiz = self
-          value = super() || []
+          value = meth.bind(self).call() || []
           Class.new(klass) do
             collection thiz.class.collection.embed(name).slice(thiz._id,value)
             writeback! do |doc|

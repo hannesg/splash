@@ -271,6 +271,26 @@ describe Splash::HasAttributes do
       a.number.should == 1337
       
     end
+    
+    it 'should work with attribute type' do
+      
+      class AttributeWithSetters2
+      
+        include Splash::HasAttributes
+        
+        attribute 'bool'
+        
+      end
+      
+      a = AttributeWithSetters2.new
+      
+      a.bool = true
+      
+      
+      a.bool.should == true
+      
+    end
+  
   
   end
   

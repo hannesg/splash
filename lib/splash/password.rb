@@ -43,5 +43,15 @@ class Splash::Password
     end
   end
   
+  def self.try_convert(str)
+    if str.kind_of? self
+      return str
+    elsif str.kind_of? String or str.kind_of? Hash
+      return self.new(str)
+    else
+      return nil
+    end
+  end
+  
   
 end

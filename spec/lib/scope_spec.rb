@@ -236,4 +236,34 @@ describe Splash::ActsAsScope do
   
   end
   
+  describe "remove" do
+  
+    it "should be able to remove scopes" do
+    
+    
+      class Foo
+        include Splash::Document
+        
+        attribute "i"
+        
+      end
+      i = 1
+      20.times do
+        f = Foo.new("i"=>i)
+        f.store!
+        i+=1
+      end
+      
+      Foo.conditions('i'=>{'$lte' => 10}).remove!
+      
+      Foo.should have(10).items
+      
+      Foo.remove!
+      
+      Foo.should have(0).items
+      
+    end
+  
+  end
+  
 end

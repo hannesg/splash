@@ -255,6 +255,10 @@ module Splash
       return obj
     end
     
+    def remove!
+      return scope_root.collection.remove(*find_options)
+    end
+    
     def exists?
       sc = self.fieldmode(:none).limit(1).scope_cursor
       result = sc.has_next?

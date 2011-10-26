@@ -91,6 +91,7 @@ module Splash
         super(obj) if defined? super
         obj.store!
       end
+      
       def create_index(*args)
         self.collection.create_index(*args)
       end

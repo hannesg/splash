@@ -18,10 +18,12 @@ module Splash
   
   class Collection < Mongo::Collection
   
-    def initialize(name, namespace)
+    attr_reader :logger, :namespace
+  
+    def initialize(name, namespace, *args)
       @namespace = namespace
       @logger = Namespace::LoggerDelegator.new
-      super(name, namespace.db)
+      super(name, namespace.db, *args)
     end
     
     def [](name)

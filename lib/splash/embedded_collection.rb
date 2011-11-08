@@ -14,7 +14,7 @@
 #
 #    (c) 2010 by Hannes Georg
 #
-class Splash::EmbeddedCollection
+class Splash::EmbeddedCollection < Splash::Collection
   
   class Persister < Array::Persister
   
@@ -240,8 +240,8 @@ class Splash::EmbeddedCollection
 
   class Slice < self
     
-    def initialize(path, basecollection, id, loaded = [])
-      super(path, basecollection)
+    def initialize(path, basecollection, id, loaded = [], *args)
+      super(path, basecollection, *args)
       @dbref = BSON::DBRef.new(basecollection.name,id)
       @loaded = loaded
     end
@@ -259,10 +259,11 @@ class Splash::EmbeddedCollection
 
   attr_reader :pk_factory
 
-  def initialize(path, basecollection)
+  def initialize(path, basecollection, *args)
     raise "Path must be a kind of String but got #{path.inspect}" unless path.kind_of? String
     @basecollection, @path = basecollection, path
     @pk_factory ||= BSON::ObjectId
+    super(@basecollection.name + ':' + @path, @basecollection.namespace, *args)
   end
   
   def name

@@ -21,6 +21,7 @@ module Splash
     extend Cautious
     
     when_included do |base|
+      base.merged_inheritable_attr :safe_on_keys
       base.instance_variable_set('@is_collection_base',true)
     end
     
@@ -29,15 +30,22 @@ module Splash
       return self
     end
     
-    def update!(updates)
-      updates = updates.inject({}) do |memo,(k,v)|
-        if v.any?
-          memo[k] = v 
+    def update!(updates=nil)
+      if updates
+        updates = updates.inject({}) do |memo,(k,v)|
+          if v.any?
+            memo[k] = v 
+          end
+          memo
         end
-        memo
+        return if updates.none?
       end
-      return if updates.none?
       return self.class.collection.update({'_id'=>self._id},updates)
+    end
+    
+    def insert!
+      self._id=self.class.insert!(self)
+      return self
     end
     
     def _dbref
@@ -79,6 +87,8 @@ module Splash
     
     module ClassMethods
       
+      attr_accessor :safe
+      
       def ensure_id!(hash)
         self.collection.pk_factory.create_pk(hash)
         if hash[:_id]
@@ -92,16 +102,14 @@ module Splash
         obj.store!
       end
       
-      def create_index(*args)
-        self.collection.create_index(*args)
-      end
-      
-      def drop_index(*args)
-        self.collection.drop_index(*args)
-      end
-      
       def store!(object)
-        return self.collection.save( eigenpersister.to_saveable(object) );
+        so = eigenpersister.to_saveable(object)
+        return self.collection.save( so, options_for(so) );
+      end
+      
+      def insert!(object)
+        so = eigenpersister.to_saveable(object)
+        return self.collection.insert( so, options_for(so) );
       end
       
       def namespace(*args)
@@ -159,6 +167,23 @@ module Splash
           return false
         end
         return true
+      end
+      
+      SAFE_OPTIONS = {:safe => true}.freeze
+      DEFAULT_OPTIONS = {}.freeze
+      
+      def options_for(doc)
+        
+        if safe
+          return SAFE_OPTIONS
+        else
+          self.each_safe_on_keys do |k|
+            if doc.key? k
+              return SAFE_OPTIONS
+            end
+          end
+        end
+        return DEFAULT_OPTIONS
       end
       
     end

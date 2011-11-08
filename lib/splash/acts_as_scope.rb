@@ -251,7 +251,7 @@ module Splash
     
     def create(*args,&block)
       obj = self.new(*args,&block)
-      obj.store!
+      obj.insert!
       return obj
     end
     
@@ -295,11 +295,11 @@ module Splash
       def find!
         self.scope_root.collection.find(*find_options)
       end
-      
+=begin
       def update!(*args)
         
       end
-      
+=end
       def find_options
         selector,options = scope_options.selector,scope_options.options
         return [selector,options]

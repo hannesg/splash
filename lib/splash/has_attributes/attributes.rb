@@ -190,6 +190,14 @@ module Splash
         complete!
         super
       end 
+      
+      def update(values)
+        raise ArgumentError, "Expected to receive a Hash, but got #{values.inspect}." unless values.kind_of? Hash
+        values.each do |k,v|
+          self[k] = v
+        end
+        return self
+      end
 
       protected
         def complete!

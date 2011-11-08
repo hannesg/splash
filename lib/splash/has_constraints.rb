@@ -19,7 +19,11 @@ module Splash
   module HasConstraints
     
     def self.validate(object, target = object)
-      result = Splash::Constraint::Result.new(target)
+      if target != object
+        result = Splash::Constraint::Result.new( target._ | object._ )
+      else
+        result = Splash::Constraint::Result.new( target._ )
+      end
       object.each_constraints do |constraint|
         constraint.validate(target,result)
       end

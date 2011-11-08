@@ -15,11 +15,14 @@
 #    (c) 2010 by Hannes Georg
 #
 module Splash
+
+  # A lazy array is an array which can lazily load elements from a source.
+  # This class is used whenever an array is loaded from the database and it's not desired to load every item.
   class Lazy::Array < Array
     
     def [](*args)
       #return super if complete?
-      raise "[] expects at least one argument, but none given" if args.none?
+      raise "[] expects at least one argument, but none given" if args.empty?
       start, length = args
       unless( length.nil? )
         start = start..(start+length-1)

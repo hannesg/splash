@@ -137,7 +137,7 @@ module Splash
       @db.collections.each do |collection|
         begin
           collection.drop
-        rescue Mongo::OperationFailure
+        rescue Mongo::Error::CantDropSystemNamespace
         end
       end
       return true

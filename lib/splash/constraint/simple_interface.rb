@@ -42,6 +42,7 @@ module Splash
         end
         args.each do |name|
           self.constraints << Constraint::Simple.new(name){|object,result|
+            puts result.inspect
             if object.send("#{what}?")
               result.errors << result._(:may_not_be,what.to_sym)
             end
@@ -58,6 +59,7 @@ module Splash
         end
         args.each do |name|
           self.constraints << Constraint::Simple.new(name){|object,result|
+            puts result.inspect
             if object.send("#{what}?")
               result.errors << result._(:must_be,what.to_sym)
             end

@@ -59,6 +59,10 @@ module Splash
       attributes.raw
     end
     
+    def to_h
+      attributes
+    end
+    
     def method_missing(meth,*args,&block)
       if meth == 'initialize'
         return super

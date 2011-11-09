@@ -133,10 +133,24 @@ module Splash
       @uri
     end
     
+    # Removes all collections in a DB.
+    # This is used to completly reset a DB to zero. Use this to test things like indice-creation.
     def clear!
       @db.collections.each do |collection|
         begin
           collection.drop
+        rescue Mongo::Error::CantDropSystemNamespace
+        end
+      end
+      return true
+    end
+    
+    # Removes all contents from all collections in a DB.
+    # This leaves indices intact, so it's used if you just want to clear the data.
+    def truncate!
+      @db.collections.each do |collection|
+        begin
+          collection.remove
         rescue Mongo::Error::CantDropSystemNamespace
         end
       end

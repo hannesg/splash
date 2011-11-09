@@ -35,8 +35,10 @@ module Splash
             if last < -1 
               raise "ranges with negative ends are not supported ( except -1 for no limit )"
             end
-            limit = ( last - offset ) - ( range.exclude_end? ? 1 : 0 )
+            limit = ( last - offset ) + ( range.exclude_end? ? 0 : 1 )
             return query( :limit => limit, :skip => offset )
+          elsif args.first.kind_of? Numeric
+            return query( :limit => 1, :skip => args.first.to_i ).first
           else
             # id query
             return query( :conditions => {'_id'=>args.first} ).first

@@ -90,6 +90,29 @@ describe Splash::ActsAsScope::Matcher do
       
     end
     
+    it "should support the $exists opperator" do
+    
+      a = {}
+      b = {'bar'=>nil}
+      
+      Splash::ActsAsScope::Matcher.cast(
+        'bar' => {'$exists' => false}
+      ).matches?(a).should be_true
+      
+      Splash::ActsAsScope::Matcher.cast(
+        'bar' => {'$exists' => true}
+      ).matches?(a).should be_false
+    
+      Splash::ActsAsScope::Matcher.cast(
+        'bar' => {'$exists' => false}
+      ).matches?(b).should be_false
+      
+      Splash::ActsAsScope::Matcher.cast(
+        'bar' => {'$exists' => true}
+      ).matches?(b).should be_true
+    
+    end
+    
   end
   
   describe "merging" do

@@ -144,9 +144,14 @@ describe Splash::ActsAsScope do
         i+=1
       end
       
-      Foo[5..15].to_a.should have(10).items
+      Foo[5..15].to_a.should have(11).items
       Foo[5..-1].to_a.should have(15).items
-      Foo[5...15].to_a.should have(9).items
+      Foo[5...15].to_a.should have(10).items
+      
+      Foo[0].i.should == 1
+      Foo[1].i.should == 2
+      Foo[15].i.should == 16
+      
     end
     
     it "should support skip with offset" do

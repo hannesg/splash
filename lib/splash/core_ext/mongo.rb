@@ -82,6 +82,12 @@ class Mongo::Error::DuplicateKey < Mongo::OperationFailure
   
 end
 
+class Mongo::Error::CappedCollectionFull < Mongo::OperationFailure
+
+  code 10003
+
+end
+
 class Mongo::MongoDBError
 
   class << self

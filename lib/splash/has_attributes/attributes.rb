@@ -123,8 +123,9 @@ module Splash
       end
       
       def delete(key)
-        super
+        value = super
         @deleted_keys << key
+        return value
       end
       
       def initialize(klass)

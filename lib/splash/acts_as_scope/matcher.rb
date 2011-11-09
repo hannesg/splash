@@ -35,6 +35,7 @@ module Splash::ActsAsScope
     ATOMS['$gt'] = lambda{|value,matcher| matcher < value }
     ATOMS['$geq'] = lambda{|value,matcher| matcher <= value }
     ATOMS['$elemMatch'] = lambda{|value,matcher| Matcher.cast(matcher).matches_any?(value) }
+    ATOMS['$exists'] = lambda{|value,matcher| (value != ::NA) == matcher }
     ATOMS['$not'] = lambda{|value,matcher|
       if matcher.kind_of? Regexp
         value !~ matcher

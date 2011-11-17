@@ -255,7 +255,7 @@ describe Splash::Lazy do
     dd.positions[2].y = 10
     #puts dd.attributes.raw.inspect
     #Splash::Namespace.debug do
-    dd.save!
+    dd.store!
     #end
     
     #puts Splash::Lazy.demand!(LazyTestDocument5.eager('positions.y').first.to_raw).inspect

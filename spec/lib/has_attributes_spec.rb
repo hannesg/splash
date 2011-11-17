@@ -343,16 +343,16 @@ describe Splash::HasAttributes do
       
       u1 = Updateable2.first
       
-      u1.save!
+      u1.store!
       
       u1.tschuess = 'du'
       
-      u1.save!
+      u1.store!
       
       Updateable2.first.tschuess.should == 'du'
       
       u1.hallo = ::NA
-      u1.save!
+      u1.store!
       
       Updateable2.first.hallo.should_not be_given
       
@@ -388,11 +388,11 @@ describe Splash::HasAttributes do
       
       u1 = Updateable3.first
       u1.tschuess = 'du'
-      u1.save!
+      u1.store!
       
       u2 = Updateable4.first
       u2.tschuess = 'du'
-      u2.save!
+      u2.store!
       
       Updateable3.first.tschuess.should == 'du'
       Updateable4.first.tschuess.should == 'du'

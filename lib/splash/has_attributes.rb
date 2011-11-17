@@ -30,8 +30,11 @@ module Splash
     
     combined_with(HasCollection) do |base|
       base.class_eval do
-        def save!
-          self.update!(self.attributes.updates)
+        def update!
+          raise "No _id!" unless self._id.given?
+          upd = self.attributes.updates
+          upd['$set'].delete('_id')
+          self.class.update_incremental!(self._id,upd)
           self.attributes.write_back!
         end
       end

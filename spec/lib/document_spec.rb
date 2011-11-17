@@ -65,6 +65,44 @@ describe Splash::Document do
     
   
   end
+  
+  it "should emit the desired callbacks" do
+  
+    class DocumentEX
+    
+      include Splash::Document
+      
+      def before_store_do_sth
+      end
+      
+      def after_store_do_sth
+      end
+      
+      def before_insert_do_sth
+      end
+      
+      def after_insert_do_sth
+      end
+      
+      def before_update_do_sth
+      end
+      
+      def after_update_do_sth
+      end
+    
+    end
+  
+    d = DocumentEX.new
+    d.should_receive(:before_store_do_sth).exactly(1).times
+    d.should_receive(:after_store_do_sth).exactly(1).times
+    d.should_receive(:before_insert_do_sth).exactly(1).times
+    d.should_receive(:after_insert_do_sth).exactly(1).times
+    
+    
+    d.store!
+    
+  
+  end
 
 
 end

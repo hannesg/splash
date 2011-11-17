@@ -26,21 +26,17 @@ module Splash
     end
     
     def store!
-      self._id=self.class.store!(self)
+      if self._id.given?
+        self.update!
+      else
+        self.insert!
+      end
       return self
     end
     
-    def update!(updates=nil)
-      if updates
-        updates = updates.inject({}) do |memo,(k,v)|
-          if v.any?
-            memo[k] = v 
-          end
-          memo
-        end
-        return if updates.none?
-      end
-      return self.class.collection.update({'_id'=>self._id},updates)
+    def update!
+      self.class.update!(self)
+      return self
     end
     
     def insert!
@@ -112,6 +108,15 @@ module Splash
         return self.collection.insert( so, options_for(so) );
       end
       
+      def update!(object)
+        so = eigenpersister.to_saveable(object)
+        return update_incremental!( so['_id'], so )
+      end
+      
+      def update_incremental!(id,data)
+        return self.collection.update({:_id=>id}, data, options_for(data))
+      end
+      
       def namespace(*args)
         if args.any?
           self.namespace=args.first
@@ -179,6 +184,12 @@ module Splash
         else
           self.each_safe_on_keys do |k|
             if doc.key? k
+              return SAFE_OPTIONS
+            end
+            if doc.key?('$set') and doc['$set'].key? k
+              return SAFE_OPTIONS
+            end
+            if doc.key?('$unset') and doc['$unset'].key? k
               return SAFE_OPTIONS
             end
           end

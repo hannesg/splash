@@ -519,4 +519,41 @@ describe Splash::HasAttributes do
   
   end
   
+  describe "to_foo" do
+  
+    it "should not respond to some common to_* methods" do
+    
+      a = Splash::AttributedStruct.new()
+      
+      a.should_not respond_to(:to_a)
+      
+      a.should_not respond_to(:to_ary)
+    
+    end
+    
+    it "should respond to some common to_* methods if they are set" do
+    
+      a = Splash::AttributedStruct.new('to_a'=>'foo','to_ary'=>'bar')
+      
+      a.should respond_to(:to_a)
+      
+      a.should respond_to(:to_ary)
+    
+    end
+    
+    it "should work with flatten" do
+    
+      a = [Splash::AttributedStruct.new()]
+      
+      lambda{ a.flatten }.should_not raise_error
+    
+      b = [Splash::AttributedStruct.new('to_ary'=>['foo'])]
+      
+      lambda{ b.flatten }.should_not raise_error
+    
+    
+    end
+  
+  end
+  
 end

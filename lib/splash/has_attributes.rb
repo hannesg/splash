@@ -22,6 +22,7 @@ module Splash
     ATTRIBUTE_GETTER_REGEXP = /^([a-zA-Z_]+)$/.freeze
     ATTRIBUTE_SETTER_REGEXP = /^([a-zA-Z_]+)=$/.freeze
     ATTRIBUTE_QUERY_REGEXP = /^([a-zA-Z_]+)\?$/.freeze
+    ATTRIBUTE_TO_X_REGEXP = /^to_[a-zA-Z_]+$/.freeze
     
     extend Cautious
     extend Combineable
@@ -51,6 +52,7 @@ module Splash
     def respond_to?(meth, include_private=false)
       return true if meth =~ ATTRIBUTE_QUERY_REGEXP
       return true if meth =~ ATTRIBUTE_SETTER_REGEXP
+      return true if attributes.key? meth.to_s
       super(meth, include_private)
     end
     
@@ -72,7 +74,9 @@ module Splash
       end
       ms = meth.to_s
       if( args.size == 0 and ms =~ ATTRIBUTE_GETTER_REGEXP )
-        return attributes[$1]
+        if (ms !~ ATTRIBUTE_TO_X_REGEXP) or attributes.key?(ms)
+          return attributes[ms]
+        end
       elsif( args.size == 1 and ms =~ ATTRIBUTE_SETTER_REGEXP )
         # setter
         return attributes[$1]=args.first
